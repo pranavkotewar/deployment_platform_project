@@ -23,7 +23,7 @@ pipeline {
                 sh """
                 ssh ${VM2_HOST} '
                     cd ~/deploy-app &&
-                    docker build -t ${APP_NAME} .
+                    docker build --no-cache -t ${APP_NAME} .
                 '
                 """
             }
