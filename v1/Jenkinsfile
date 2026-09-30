@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+    parameters {
+        string(name: 'REPO_URL', defaultValue: 'https://github.com/pranavkotewar/sample-static-app.git', description: 'GitHub repo URL to deploy')
+    }
+    environment {
+        VM2_HOST = 'projectvm2@192.168.42.7'
+        APP_NAME = 'sample-app'
+    }
+    stages {
+        stage('Clone on VM2') {
+            steps {
+                sh """
+                ssh -o StrictHostKeyChecking=accept-new ${VM2_HOST} '
+                    rm -rf ~/deploy-app &&
+                    git clone ${params.REPO_URL} ~/deploy-app
+                '
+                """
+            }
+        }
+        stage('Build Docker Image on VM2') {
+            steps {
+                sh """
+                ssh ${VM2_HOST} '
+                    cd ~/deploy-app &&
+                    docker build -t ${APP_NAME} .
+                '
+                """
+            }
+        }
+        stage('Run Container on VM2') {
+            steps {
+                sh """
+                ssh ${VM2_HOST} '
+                    docker rm -f ${APP_NAME} || true &&
+                    docker run -d -p 9000:80 --name ${APP_NAME} ${APP_NAME}
+                '
+                """
+            }
+        }
+    }
+    post {
+        success {
+            echo "Deployed! Visit: http://192.168.42.7:9000"
+        }
+        failure {
+            echo "Deployment failed. Check logs above."
+        }
+    }
+}
