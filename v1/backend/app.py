@@ -12,7 +12,21 @@ JENKINS_URL = os.getenv('JENKINS_URL', 'http://localhost:8080')
 JENKINS_USER = os.getenv('JENKINS_USER')
 JENKINS_TOKEN = os.getenv('JENKINS_TOKEN')
 JOB_NAME = 'deploy-pipeline'
-APP_LIVE_URL = 'http://192.168.42.7:9000'
+APP_LIVE_URL = 'http://192.168.42.7:9000' #fallback if ngrok not found
+
+def get_vm2_public_url():
+    """VM2 is running ngrok, we can get the public URL from its API (local API, port 4041)."""
+    try:
+        resp = requests.get('http://192.168.42.7:4040/api/tunnels', timeout=3)
+        resp.raise_for_status()
+        tunnels = resp.json().get('tunnels', [])
+        for t in tunnels:
+            if t.get('public_url', '').startswith('https'):
+                return t['public_url']
+
+        return APP_LIVE_URL
+    except requests.exceptions.RequestException:
+        return APP_LIVE_URL
 
 @app.route('/')
 def home():
@@ -56,7 +70,7 @@ def deploy():
         return jsonify({
             'status': 'triggered',
             'message': 'Deployment started!',
-            'live_url': APP_LIVE_URL,
+            'live_url': get_vm2_public_url(),
             'queue_url': queue_url
      })
 
