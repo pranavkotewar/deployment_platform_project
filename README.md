@@ -222,15 +222,33 @@ VM1 also claims a free static domain from the ngrok dashboard
 
 ## Known Limitations (V1)
 
-- Manual trigger only — no GitHub webhook / auto-deploy on push.
-- No template selection — assumes the repo already has a working Dockerfile.
-- No pre-deployment validation, health checks, or self-healing (planned
-  for V2).
-- No Kubernetes / rollback (planned for V3).
-- Credentials (Jenkins token, PAT) are stored in plain text (`.env`,
-  `.git-credentials`) — acceptable for a local learning VM, not for
-  production.
-
+- **Single Dockerfile at repo root only.** The pipeline runs
+  `docker build` against the root of the cloned repo. If a repo
+  contains multiple applications (e.g. `app1/Dockerfile`,
+  `app2/Dockerfile` in separate folders), the build will fail to find
+  a Dockerfile, and there is no way to specify which sub-folder or
+  app to deploy. The dashboard only accepts a repo URL, not a path.
+- **Fixed internal container port (80) assumed.** `docker run` always
+  maps host port 9000 to container port 80
+  (`-p 9000:80`). Any repo deployed must have its app listening on
+  port 80 inside the container (as declared via `EXPOSE 80` in its
+  Dockerfile), or the port mapping will be wrong and the app will not
+  be reachable, even if the build succeeds.
+- *Manual trigger only * — no GitHub webhook / auto-deploy on push.
+- *No template selection* — assumes the repo already has a working
+  Dockerfile (and that the user wrote it correctly).
+- *No pre-deployment validation* (e.g. checking that a Dockerfile
+  exists before triggering a build).
+- *No health checks* after deployment — success is reported as soon as
+  `docker run` exits, without verifying the app actually responds.
+- *No self-healing* if the container crashes after a successful deploy.
+- *No Kubernetes*: / rollback (planned for V3).
+- *Credentials*: (Jenkins token, PAT, ngrok authtoken) are stored in
+  plain text (`.env`, `.git-credentials`, ngrok config) — acceptable
+  for a local learning VM, not for production.
+- *ngrok free-plan constraints*: one active tunnel per account (two
+  accounts used, one per VM), 20k requests/month, 1GB bandwidth/month,
+  and a browser warning interstitial on first visit to each tunnel.
 ---
 
 ## Roadmap
