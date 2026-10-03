@@ -133,6 +133,71 @@ python app.py
 Open `http://<VM1-IP>:5000`, paste the sample app's repo URL, click
 Deploy, confirm the live link at `http://<VM2-IP>:9000` works.
 
+## 10. Public access setup (ngrok)
+
+Install ngrok on both VMs:
+
+curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+sudo apt update
+sudo apt install ngrok
+
+
+Each VM needs its **own ngrok account and authtoken** — the free plan
+allows only one active tunnel per account, so reusing the same token
+on both VMs causes a conflict (`ERR_NGROK_334`).
+
+ngrok config add-authtoken <token>
+
+
+On VM1, claim a free static domain from the ngrok dashboard
+(Cloud Edge → Domains), so the dashboard URL never changes across
+restarts:
+
+ngrok http --url=https://battered-serpent-yonder.ngrok-free.dev.ngrok-free.dev 5000
+
+
+On VM2, a normal dynamic tunnel is enough (URL changes on restart,
+but the dashboard resolves it automatically):
+
+ngrok http 9000
+
+
+### Normal-user SSH (VM1 → VM2)
+
+Separate from the Jenkins SSH key, so `start.sh` can start VM2's
+ngrok tunnel remotely under the normal login user:
+
+ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa
+cat ~/.ssh/id_rsa.pub # copy this into VM2's ~/.ssh/authorized_keys
+
+
+### Dynamic URL resolution in Flask
+
+`app.py` queries VM2's ngrok local API to get its current public URL:
+```python
+def get_vm2_public_url():
+    try:
+        resp = requests.get('http://192.168.42.7:4040/api/tunnels', timeout=3)
+        resp.raise_for_status()
+        tunnels = resp.json().get('tunnels', [])
+        for t in tunnels:
+            if t.get('public_url', '').startswith('https'):
+                return t['public_url']
+        return APP_LIVE_URL
+    except requests.exceptions.RequestException:
+        return APP_LIVE_URL
+```
+
+### One-command start/stop
+
+`start.sh` — starts Flask, VM1's ngrok (dashboard), and VM2's ngrok
+(app, started remotely over SSH).
+
+`stop.sh` — stops all three. Process matching uses the substring
+`"app.py"` (not `"python app.py"`, which fails to match `python3 app.py`)
+and `-9` to force-kill cleanly.
+
 ## Credential Handling Notes
 
 - Jenkins token and `.env` are never committed to Git
@@ -140,3 +205,4 @@ Deploy, confirm the live link at `http://<VM2-IP>:9000` works.
 - GitHub pushes use a Personal Access Token (PAT), stored locally via
   `git config --global credential.helper store` to avoid re-entering
   it on every push.
+
