@@ -85,3 +85,24 @@ from the infrastructure they deploy to.
   network IP changes.
 - **Credentials in `.env`**, excluded from Git via `.gitignore` — keeps
   secrets out of version control.
+
+## Public Access Layer
+
+- To make the dashboard and deployed app reachable from outside the
+local VM network, both VMs run an ngrok tunnel:
+
+- Internet → ngrok (fixed domain) → VM1:5000 (Flask/Dashboard)
+Internet → ngrok (dynamic domain) → VM2:9000 (deployed app)
+
+
+- VM1's Flask backend queries VM2's ngrok local API
+(`http://<VM2-IP>:4040/api/tunnels`) after each deploy to resolve
+VM2's current public URL, since it can change between restarts (free
+plan). VM1's own dashboard URL is a free static domain and does not
+change.
+
+- `start.sh` orchestrates startup: it starts Flask locally, starts
+ngrok locally for the dashboard, and starts ngrok on VM2 remotely via
+SSH (reusing the same SSH trust model used for Jenkins, but with a
+separate key tied to the normal login user rather than the `jenkins`
+system user).

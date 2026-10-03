@@ -61,6 +61,8 @@ Full diagram and component breakdown: see [`v1/docs/02_Architecture_and_Design.m
 auto-deploy-system/
 ├── README.md
 ├── .gitignore
+├── start.sh
+├── stop.sh
 └── v1/
 ├── Jenkinsfile
 ├── docs/
@@ -177,6 +179,46 @@ Open `http://<VM1-IP>:5000`, paste a repo URL (must contain a Dockerfile),
 click **Deploy**. Live app appears at `http://<VM2-IP>:9000`.
 
 ---
+
+## Public Access (ngrok Tunneling)
+
+Both the dashboard (VM1) and the deployed app (VM2) can be made
+accessible from any network (not just the local VM network) using
+ngrok tunnels.
+
+- **Dashboard (VM1):** uses a free static ngrok domain, so the URL
+  never changes between restarts.
+- **App (VM2):** uses a free dynamic ngrok domain, which changes each
+  time it restarts. The dashboard automatically fetches VM2's current
+  public URL from ngrok's local API (`localhost:4040/api/tunnels`) and
+  displays it after each deploy, so the changing URL is never a
+  problem in practice.
+
+Because ngrok's free plan allows only one active tunnel per account,
+VM1 and VM2 use **two separate ngrok accounts** (two authtokens).
+
+### Starting everything
+
+cd ~/auto-deploy-system
+./start.sh
+
+This starts Flask, VM1's ngrok tunnel (dashboard), and VM2's ngrok
+tunnel (app, started remotely over SSH) in one command.
+
+### Stopping everything
+
+./stop.sh
+
+
+### One-time setup (per VM)
+
+curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+sudo apt update && sudo apt install ngrok
+ngrok config add-authtoken <token>
+
+VM1 also claims a free static domain from the ngrok dashboard
+(Cloud Edge → Domains), used in `start.sh`.
 
 ## Known Limitations (V1)
 
