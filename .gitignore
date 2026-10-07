@@ -5,3 +5,6 @@ __pychache__/
 venv/
 *.key
 *.crt
+ngrok_vm1_env
+*.log
+context.md
