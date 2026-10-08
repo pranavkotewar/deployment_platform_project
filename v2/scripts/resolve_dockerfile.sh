@@ -22,7 +22,7 @@ else
         echo "ERROR: template not found ($TEMPLATE)"
         exit 1
     fi
-    cp "$TEMPLATES_DIR/$TEMPLATE/Dockerfile" "$APP_DIR/Dockerfile"
+    cp -r "$TEMPLATES_DIR/$TEMPLATE/." "$APP_DIR/"
     echo "Generated Dockerfile from template: $TEMPLATE"
 fi
 
