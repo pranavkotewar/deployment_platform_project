@@ -14,16 +14,22 @@ pipeline {
         WORK = "deployforge/work/${params.APP_NAME}"
     }
     stages {
-        stage('Check Parameters') {
+	stage('Check Parameters') {
             steps {
                 script {
-                    if (!(params.REPO_URL ==~ '^https://github\\.com/[\\w.-]+/[\\w.-]+?(\\.git)?/?$')) { error('Invalid REPO_URL') }
-                    if (!(params.APP_PATH ==~ '^[A-Za-z0-9._/-]+$') || params.APP_PATH.contains('..') || params.APP_PATH.startsWith('/')) { error('Invalid APP_PATH') }
-                    if (!(params.APP_NAME ==~ '^[a-z0-9][a-z0-9-]{0,40}$')) { error('Invalid APP_NAME') }
-                    if (!(params.TEMPLATE in ['', 'static', 'flask', 'node'])) { error('Invalid TEMPLATE') }
+                    def repo = params.REPO_URL ?: ''
+                    def path = params.APP_PATH ?: ''
+                    def name = params.APP_NAME ?: ''
+                    def tpl = params.TEMPLATE ?: ''
+                    if (!(repo ==~ '^https://github\\.com/[\\w.-]+/[\\w.-]+?(\\.git)?/?$')) { error('Invalid REPO_URL') }
+                    if (!(path ==~ '^[A-Za-z0-9._/-]+$') || path.contains('..') || path.startsWith('/')) { error('Invalid APP_PATH') }
+                    if (!(name ==~ '^[a-z0-9][a-z0-9-]{0,40}$')) { error('Invalid APP_NAME') }
+                    if (!(tpl in ['', 'static', 'flask', 'node'])) { error('Invalid TEMPLATE') }
+                    env.PARAMS_OK = 'true'
                 }
             }
         }
+
         stage('Copy Scripts to VM2') {
             steps {
                 sh '''
@@ -75,14 +81,15 @@ pipeline {
                 }
             }
         }
-        stage('Run Container') {
+	stage('Run Container') {
             steps {
+                script { env.CONTAINER_STARTED = 'true' }
                 sh '''
                 ssh -n "$VM2_HOST" "docker rm -f '$APP_NAME' >/dev/null 2>&1; docker run -d --restart unless-stopped --name '$APP_NAME' -p '$HPORT:$CPORT' '$APP_NAME:latest'"
                 '''
             }
         }
-        stage('Health Check') {
+	stage('Health Check') {
             steps {
                 sh '''
                 ssh -n "$VM2_HOST" "bash deployforge/scripts/health_check.sh wait '$APP_NAME' '$HPORT'"
@@ -92,16 +99,27 @@ pipeline {
     }
     post {
         always {
-            sh '''
-            ssh -n "$VM2_HOST" "bash deployforge/scripts/cleanup.sh '$APP_NAME' '$WORK'" || true
-            rm -f resolve.out port.out
-            '''
+            script {
+                if (env.PARAMS_OK == 'true') {
+                    sh '''
+                    ssh -n "$VM2_HOST" "bash deployforge/scripts/cleanup.sh '$APP_NAME' '$WORK'" || true
+                    '''
+                }
+                sh 'rm -f resolve.out port.out'
+            }
         }
         success {
             echo "DEPLOY SUCCESS: ${params.APP_NAME} on VM2 port ${env.HPORT} (container port ${env.CPORT})"
         }
         failure {
+            script {
+                if (env.CONTAINER_STARTED == 'true') {
+                    sh '''
+                    ssh -n "$VM2_HOST" "docker rm -f '$APP_NAME' >/dev/null 2>&1; bash deployforge/scripts/assign_port.sh release '$APP_NAME'" || true
+                    '''
+                    echo "Failed container removed and port released."
+                }
+            }
             echo "DEPLOY FAILED: check the failed stage above."
         }
     }
-}

@@ -49,7 +49,7 @@ else
 fi
 
 # 5. GitHub reachable
-if curl -fsS -o /dev/null --max-time 8 https://github.com; then
+if curl -fsSI -o /dev/null --max-time 15 https://github.com; then
     pass "GitHub is reachable"
 else
     fail "GitHub is not reachable (check internet connection)"

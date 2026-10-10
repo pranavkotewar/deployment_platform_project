@@ -1,21 +1,24 @@
 #!/bin/bash
-#health_check.sh wait <app> <host_port>
-# After deploy: is container running & HTTP responds ?
-# 000 (connection fail) and 5xx = unhealthy, 2xx/3xx/4xx = app respods.
-# (In step 10 'periodic mode and self-healing will be added to this same file.')
+# health_check.sh wait <app> <host_port>
+# Deploy ke baad: container running hai aur HTTP jawab de raha hai?
+# 000 (connection fail) aur 5xx = unhealthy. 2xx/3xx/4xx = app respond kar rahi hai.
+# (Step 10 mein isi file mein periodic mode aur self-healing judega)
 
 MODE="$1"
 APP="$2"
 PORT="$3"
 TRIES=15
 
-case "$MODE" in 
+is_running() {
+    [ -n "$(docker ps -q --filter "name=^${APP}$" --filter status=running < /dev/null)" ]
+}
+
+case "$MODE" in
     wait)
         for ((i=1; i<=TRIES; i++)); do
-            running=$(docker inspect -f '{{.state.Running}}' "$APP" 2>/dev/null)
-            if [ "$running" = "true" ]; then
+            if is_running; then
                 code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "http://localhost:$PORT/")
-                if  [ "$code" != "000" ] && [ "$code" -lt 500 ]; then
+                if [ "$code" != "000" ] && [ "$code" -lt 500 ]; then
                     echo "HEALTH OK: HTTP $code (attempt $i)"
                     exit 0
                 fi
@@ -34,4 +37,4 @@ case "$MODE" in
         echo "Usage: health_check.sh wait <app> <host_port>"
         exit 1
         ;;
-    esac
+esac
