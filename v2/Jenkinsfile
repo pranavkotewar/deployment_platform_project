@@ -123,3 +123,4 @@ pipeline {
             echo "DEPLOY FAILED: check the failed stage above."
         }
     }
+}
