@@ -102,6 +102,15 @@ case "$CMD" in
     update_registry add_entry "$NAME" "$PORT" "$CPORT" || die "could not update registry"
     echo "PORT=$PORT"
     ;;
+  check)
+    valid_name "$NAME" || die "invalid app name (use lowercase letters, digits, hyphen)"
+    lock
+    if [ -n "$(lookup_port "$NAME")" ]; then
+      echo "TAKEN"
+      exit 1
+    fi
+    echo "AVAILABLE"
+    ;;
   get)
     valid_name "$NAME" || die "invalid app name"
     lock

@@ -1,11 +1,13 @@
 pipeline {
     agent any
+    options {
+        disableConcurrentBuilds()
+    }
     parameters {
         string(name: 'REPO_URL', defaultValue: 'https://github.com/pranavkotewar/sample-static-app', description: 'GitHub repository URL')
         string(name: 'APP_PATH', defaultValue: '.', description: 'App folder inside the repo (. for root)')
-        choice(name: 'DOCKERFILE_PRESENT', choices: ['true', 'false'], description: 'Does the app folder already have a Dockerfile?')
-        choice(name: 'TEMPLATE', choices: ['', 'static', 'flask', 'node'], description: 'Template (only used when there is no Dockerfile)')
-        string(name: 'APP_NAME', defaultValue: 'sample-static-app', description: 'Unique app name (lowercase letters, digits, hyphen)')
+        string(name: 'TEMPLATE', defaultValue: '', description: 'static, flask or node. Used only if the app has no Dockerfile')
+        string(name: 'APP_NAME', defaultValue: 'demo-app', description: 'Unique app name (lowercase letters, digits, hyphen)')
     }
     environment {
         VM2_HOST = 'projectvm2@my-app'
@@ -25,7 +27,7 @@ pipeline {
         stage('Copy Scripts to VM2') {
             steps {
                 sh '''
-                ssh -o StrictHostKeyChecking=accept-new "$VM2_HOST" 'mkdir -p deployforge && rm -rf deployforge/scripts deployforge/dockerfile-templates'
+                ssh -n -o StrictHostKeyChecking=accept-new "$VM2_HOST" "mkdir -p deployforge && rm -rf deployforge/scripts deployforge/dockerfile-templates"
                 scp -rq v2/scripts v2/dockerfile-templates "$VM2_HOST":deployforge/
                 '''
             }
@@ -33,21 +35,21 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 sh '''
-                ssh "$VM2_HOST" "rm -rf '$WORK' && mkdir -p '$WORK' && git clone --depth 1 -q '$REPO_URL' '$WORK/repo'"
+                ssh -n "$VM2_HOST" "rm -rf '$WORK' && mkdir -p '$WORK' && git clone --depth 1 -q '$REPO_URL' '$WORK/repo'"
                 '''
             }
         }
         stage('Validate') {
             steps {
                 sh '''
-                ssh "$VM2_HOST" "bash deployforge/scripts/validate.sh '$WORK/repo' '$APP_PATH' '$DOCKERFILE_PRESENT' '$TEMPLATE'"
+                ssh -n "$VM2_HOST" "bash deployforge/scripts/validate.sh '$WORK/repo' '$APP_PATH' '$TEMPLATE'"
                 '''
             }
         }
         stage('Resolve Dockerfile') {
             steps {
                 sh '''
-                ssh "$VM2_HOST" "bash deployforge/scripts/resolve_dockerfile.sh '$WORK/repo' '$APP_PATH' '$TEMPLATE' deployforge/dockerfile-templates" > resolve.out
+                ssh -n "$VM2_HOST" "bash deployforge/scripts/resolve_dockerfile.sh '$WORK/repo' '$APP_PATH' '$TEMPLATE' deployforge/dockerfile-templates" > resolve.out || { cat resolve.out; exit 1; }
                 cat resolve.out
                 '''
                 script {
@@ -58,14 +60,14 @@ pipeline {
         stage('Build Image') {
             steps {
                 sh '''
-                ssh "$VM2_HOST" "cd '$WORK/repo/$APP_PATH' && docker build --no-cache -t '$APP_NAME:$BUILD_NUMBER' -t '$APP_NAME:latest' ."
+                ssh -n "$VM2_HOST" "cd '$WORK/repo/$APP_PATH' && docker build --no-cache -t '$APP_NAME:$BUILD_NUMBER' -t '$APP_NAME:latest' ."
                 '''
             }
         }
         stage('Assign Port') {
             steps {
                 sh '''
-                ssh "$VM2_HOST" "bash deployforge/scripts/assign_port.sh assign '$APP_NAME' '$CPORT'" > port.out
+                ssh -n "$VM2_HOST" "bash deployforge/scripts/assign_port.sh assign '$APP_NAME' '$CPORT'" > port.out || { cat port.out; exit 1; }
                 cat port.out
                 '''
                 script {
@@ -76,17 +78,30 @@ pipeline {
         stage('Run Container') {
             steps {
                 sh '''
-                ssh "$VM2_HOST" "docker rm -f '$APP_NAME' >/dev/null 2>&1 || true; docker run -d --restart on-failure:5 --name '$APP_NAME' -p '$HPORT:$CPORT' '$APP_NAME:latest'"
+                ssh -n "$VM2_HOST" "docker rm -f '$APP_NAME' >/dev/null 2>&1; docker run -d --restart unless-stopped --name '$APP_NAME' -p '$HPORT:$CPORT' '$APP_NAME:latest'"
+                '''
+            }
+        }
+        stage('Health Check') {
+            steps {
+                sh '''
+                ssh -n "$VM2_HOST" "bash deployforge/scripts/health_check.sh wait '$APP_NAME' '$HPORT'"
                 '''
             }
         }
     }
     post {
+        always {
+            sh '''
+            ssh -n "$VM2_HOST" "bash deployforge/scripts/cleanup.sh '$APP_NAME' '$WORK'" || true
+            rm -f resolve.out port.out
+            '''
+        }
         success {
             echo "DEPLOY SUCCESS: ${params.APP_NAME} on VM2 port ${env.HPORT} (container port ${env.CPORT})"
         }
         failure {
-            echo "DEPLOY FAILED: check the stage logs above."
+            echo "DEPLOY FAILED: check the failed stage above."
         }
     }
 }
