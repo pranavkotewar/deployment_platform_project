@@ -11,6 +11,7 @@ JENKINS_USER = os.getenv('JENKINS_USER')
 JENKINS_TOKEN = os.getenv('JENKINS_TOKEN')
 JOB_NAME = 'deploy-pipeline-v2'
 VM2_HOST = os.getenv('VM2_HOST', 'projectvm2@my-app')
+APP_BASE_URL = os.getenv('APP_BASE_URL', 'http://localhost:8080').rstrip('/')
 PORT_SCRIPT = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'assign_port.sh')
 
 REPO_RE = re.compile(r'^https://github\.com/[\w.-]+/[\w.-]+?(\.git)?/?$')
@@ -183,7 +184,11 @@ def deploy_status():
                     reason = l.strip()
                     break
             reason = reason or 'Deployment failed, see the logs'
+        live_url = None
+        an = request.args.get('app_name', '')
+        if status == 'finished' and result == 'SUCCESS' and NAME_RE.match(an):
+            live_url = f'{APP_BASE_URL}/apps/{an}/'
         return jsonify({'status': status, 'result': result if status == 'finished' else None,
-                        'build_number': num, 'steps': steps, 'reason': reason, 'logs': lines})
+                        'build_number': num, 'steps': steps, 'reason': reason, 'logs': lines, 'live_url': live_url})
     except requests.exceptions.RequestException:
         return jsonify({'status': 'error', 'message': 'Could not reach Jenkins'}), 502

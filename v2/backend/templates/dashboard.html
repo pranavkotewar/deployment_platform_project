@@ -268,7 +268,7 @@
       </section>
       <section class="card">
         <h3 class="card-title">Live Application</h3>
-        <div class="live-link">Available after the Nginx route is set up</div>
+        <div class="live-link" id="liveBox">Available after a successful deployment</div>
       </section>
     </div>
 
@@ -332,6 +332,7 @@
   var nameTimer = null;
   var pollTimer = null;
   var pollErrors = 0;
+  var deployedName = '';
 
   function logLine(text, cls) {
     var line = document.createElement('div');
@@ -541,12 +542,30 @@
     heroSub.textContent = sub;
   }
 
+  function showLive(url) {
+    var box = document.getElementById('liveBox');
+    box.textContent = '';
+    box.style.flexDirection = 'column';
+    box.style.alignItems = 'flex-start';
+    box.style.gap = '6px';
+    if (!url) { box.textContent = 'Live URL not available'; return; }
+    var a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    a.textContent = 'Open Application';
+    a.style.color = '#4d8dff'; a.style.fontSize = '15px'; a.style.fontWeight = '600';
+    var u = document.createElement('div');
+    u.textContent = url; u.style.fontSize = '12px'; u.style.color = '#8a97ad'; u.style.wordBreak = 'break-all';
+    box.appendChild(a);
+    box.appendChild(u);
+  }
+
   function finishDeploy(data) {
     clearInterval(pollTimer);
     deploying = false;
     if (data.result === 'SUCCESS') {
       setHero('Deployed', 'Your application passed the health check.', 'good');
       logLine('Deployment finished successfully.', 'l-info');
+      showLive(data.live_url);
     } else {
       setHero('Deployment Failed', 'Check the status and logs.', 'bad');
       failBox.textContent = data.reason || 'Deployment failed. See the logs.';
@@ -559,7 +578,7 @@
 
   async function pollOnce(queuePath) {
     try {
-      var res = await fetch('/deploy-status?queue_path=' + encodeURIComponent(queuePath));
+      var res = await fetch('/deploy-status?queue_path=' + encodeURIComponent(queuePath) + '&app_name=' + encodeURIComponent(deployedName));
       var data = await res.json();
       pollErrors = 0;
       if (data.status === 'error') { throw new Error(data.message); }
@@ -588,6 +607,8 @@
     body.append('app_name', nameInput.value.trim());
 
     deploying = true;
+    deployedName = nameInput.value.trim();
+    document.getElementById('liveBox').textContent = 'Available after a successful deployment';
     failBox.style.display = 'none';
     renderSteps([]);
     logBox.innerHTML = '';
