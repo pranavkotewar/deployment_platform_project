@@ -89,6 +89,13 @@ pipeline {
                 '''
             }
         }
+	stage('Create Route') {
+	    steps {
+	        sh '''
+	        ssh -n "$VM2_HOST" "bash deployforge/scripts/generate_nginx_route.sh create '$APP_NAME' '$HPORT'"
+	        '''
+	    }
+	}
 	stage('Health Check') {
             steps {
                 sh '''
@@ -115,7 +122,7 @@ pipeline {
             script {
                 if (env.CONTAINER_STARTED == 'true') {
                     sh '''
-                    ssh -n "$VM2_HOST" "docker rm -f '$APP_NAME' >/dev/null 2>&1; bash deployforge/scripts/assign_port.sh release '$APP_NAME'" || true
+                    ssh -n "$VM2_HOST" "docker rm -f '$APP_NAME' >/dev/null 2>&1; bash deployforge/scripts/generate_nginx_route.sh remove '$APP_NAME'; bash deployforge/scripts/assign_port.sh release '$APP_NAME'" || true
                     '''
                     echo "Failed container removed and port released."
                 }

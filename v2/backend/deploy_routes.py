@@ -23,7 +23,7 @@ STEP_OF = {
     'Check Parameters': 0, 'Copy Scripts to VM2': 0, 'Clone Repository': 0,
     'Validate': 1,
     'Resolve Dockerfile': 2, 'Build Image': 2,
-    'Assign Port': 3, 'Run Container': 3,
+    'Assign Port': 3, 'Run Container': 3, 'Create Route': 3,
     'Health Check': 4,
 }
 STEP_NAMES = ['Repository Cloned', 'Validation Passed', 'Docker Image Built',
