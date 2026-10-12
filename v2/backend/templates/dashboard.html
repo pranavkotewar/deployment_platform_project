@@ -8,7 +8,7 @@
   :root {
     --bg: #070b14; --panel: #0d1424; --panel2: #0a101d; --line: #1b2740;
     --text: #e6edf7; --muted: #8a97ad; --blue: #3b82f6; --blue2: #1d6bff;
-    --green: #22c55e; --amber: #f59e0b; --red: #ef4444; --violet: #8b5cf6;
+    --green: #22c55e; --amber: #f59e0b; --red: #ef4444;
   }
   html, body, div, section, header, input, select, button, table, span { box-sizing: border-box; }
   body {
@@ -18,8 +18,7 @@
   }
   .topbar {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 32px; border-bottom: 1px solid var(--line);
-    background: rgba(7,11,20,0.8);
+    padding: 14px 32px; border-bottom: 1px solid var(--line); background: rgba(7,11,20,0.8);
   }
   .brand { display: flex; align-items: center; gap: 12px; }
   .brand-name { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
@@ -27,79 +26,52 @@
   .brand-tag { font-size: 13px; color: var(--muted); }
   .top-right { display: flex; align-items: center; gap: 14px; }
   .badge {
-    font-size: 12px; font-weight: 600; color: #93c5fd;
-    background: rgba(59,130,246,0.14); border: 1px solid #1e4fb8;
-    padding: 5px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; color: #93c5fd; background: rgba(59,130,246,0.14);
+    border: 1px solid #1e4fb8; padding: 5px 12px; border-radius: 999px;
   }
   .online { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
-  .pulse {
-    width: 9px; height: 9px; border-radius: 50%; background: var(--green);
-    box-shadow: 0 0 0 0 rgba(34,197,94,0.6); animation: pulse 2s infinite;
-  }
+  .pulse { width: 9px; height: 9px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
     70% { box-shadow: 0 0 0 9px rgba(34,197,94,0); }
     100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
   }
-
   .page { max-width: 1480px; margin: 0 auto; padding: 24px 32px 40px; }
   .grid1 { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 20px; }
   .grid2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; margin-top: 20px; }
   .col { display: flex; flex-direction: column; gap: 16px; }
-
-  .card {
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 14px; padding: 22px;
-  }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
   .card-title { margin: 0 0 16px; font-size: 16px; font-weight: 600; }
   .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   .card-head .card-title { margin: 0; }
-
   .nd-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
-  .nd-icon {
-    width: 42px; height: 42px; border-radius: 50%; background: rgba(59,130,246,0.16);
-    display: flex; align-items: center; justify-content: center;
-  }
+  .nd-icon { width: 42px; height: 42px; border-radius: 50%; background: rgba(59,130,246,0.16); display: flex; align-items: center; justify-content: center; }
   .nd-head h2 { margin: 0; font-size: 20px; font-weight: 600; }
   .nd-head p { margin: 3px 0 0; font-size: 12px; color: var(--muted); }
-
   label { display: block; font-size: 13px; color: #c3cde0; margin: 0 0 7px; }
   input[type="text"], select {
-    width: 100%; padding: 11px 13px; background: var(--panel2);
-    border: 1px solid var(--line); border-radius: 8px;
-    color: var(--text); font-size: 14px; font-family: inherit;
+    width: 100%; padding: 11px 13px; background: var(--panel2); border: 1px solid var(--line);
+    border-radius: 8px; color: var(--text); font-size: 14px; font-family: inherit;
   }
   input[type="text"]:focus, select:focus { outline: none; border-color: var(--blue); }
-  select:disabled { opacity: 0.6; }
+  input:disabled, select:disabled { opacity: 0.6; }
   .field { margin-bottom: 16px; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .url-row { display: flex; gap: 10px; }
   .url-row input { flex: 1; }
-
-  .btn {
-    border: none; border-radius: 8px; background: var(--blue2); color: #fff;
-    font-size: 14px; font-weight: 600; padding: 11px 18px; cursor: pointer;
-    font-family: inherit;
-  }
+  .btn { border: none; border-radius: 8px; background: var(--blue2); color: #fff; font-size: 14px; font-weight: 600; padding: 11px 18px; cursor: pointer; font-family: inherit; }
   .btn:hover:not(:disabled) { background: #1558d6; }
   .btn:disabled { background: #1a2438; color: #5b6880; cursor: not-allowed; }
   .btn-block { width: 100%; padding: 13px; font-size: 15px; margin-top: 6px; }
   .btn-ghost { background: #152036; border: 1px solid var(--line); }
   .btn-ghost:hover:not(:disabled) { background: #1a2a47; }
-
-  .msg { font-size: 12px; margin: -6px 0 14px; min-height: 16px; }
+  .msg { font-size: 12px; margin: 6px 0 0; min-height: 16px; }
   .msg.error { color: #f87171; }
   .msg.info { color: var(--muted); }
   .msg.ok { color: #4ade80; }
-
   .opts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
-  .opt {
-    background: var(--panel2); border: 1px solid var(--line); border-radius: 10px;
-    padding: 14px 6px; text-align: center; font-size: 13px; color: #c3cde0;
-    cursor: pointer; transition: all .15s;
-  }
+  .opt { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 14px 6px; text-align: center; font-size: 13px; color: #c3cde0; cursor: pointer; transition: all .15s; }
   .opt svg { display: block; margin: 0 auto 8px; }
-  .opt img { display: block; margin: 0 auto 8px; }
   .opt:hover:not(.off) { border-color: #2c4272; }
   .opt.on { border-color: var(--blue); color: #fff; background: rgba(59,130,246,0.10); }
   .opt.off { opacity: 0.35; cursor: not-allowed; }
@@ -107,9 +79,19 @@
   .steps { display: flex; flex-direction: column; gap: 15px; }
   .step { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); }
   .step-dot {
-    width: 22px; height: 22px; border-radius: 50%; border: 2px solid #2a3957;
-    flex-shrink: 0;
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid #2a3957; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff;
   }
+  .step.success { color: var(--text); }
+  .step.success .step-dot { background: var(--green); border-color: var(--green); }
+  .step.failed { color: #f87171; }
+  .step.failed .step-dot { background: var(--red); border-color: var(--red); }
+  .step.running { color: var(--text); }
+  .step.running .step-dot { border-color: var(--blue); border-top-color: transparent; animation: spin 0.9s linear infinite; }
+  .step.skipped { opacity: 0.45; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .fail-box { margin-top: 14px; padding: 10px 12px; border: 1px solid #7f1d1d; background: rgba(239,68,68,0.10); color: #fca5a5; border-radius: 8px; font-size: 13px; line-height: 1.5; }
   .health-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .health-state { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--muted); }
   .health-dot { width: 14px; height: 14px; border-radius: 50%; background: #2a3957; }
@@ -118,45 +100,28 @@
   .health-meta b { display: block; font-size: 14px; color: var(--text); margin-top: 3px; }
   .live-link { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #5b6880; }
 
-  .hero {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; position: relative; overflow: hidden; min-height: 380px;
-    background:
-      radial-gradient(circle at 50% 38%, rgba(59,130,246,0.20), transparent 60%),
-      var(--panel);
-  }
+  .hero { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; overflow: hidden; min-height: 380px;
+    background: radial-gradient(circle at 50% 38%, rgba(59,130,246,0.20), transparent 60%), var(--panel); }
   .hero-logo { animation: float 4s ease-in-out infinite; filter: drop-shadow(0 0 26px rgba(79,125,255,0.55)); }
-  @keyframes float {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0); }
-  }
+  @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0); } }
   .hero h2 { margin: 18px 0 4px; font-size: 30px; font-weight: 700; letter-spacing: 0.4px; }
   .grad { background: linear-gradient(90deg, #38bdf8, #6366f1, #a855f7); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .hero-tag { font-size: 13px; color: var(--muted); max-width: 280px; line-height: 1.5; }
   .hero-ready { margin-top: 20px; font-size: 16px; font-weight: 600; }
-  .hero-sub { margin-top: 4px; font-size: 12px; color: var(--muted); }
-  .hero-ver {
-    margin-top: 14px; font-size: 11px; color: #93c5fd;
-    border: 1px solid #1e4fb8; border-radius: 999px; padding: 3px 11px;
-    background: rgba(59,130,246,0.10);
-  }
+  .hero-ready.good { color: #4ade80; }
+  .hero-ready.bad { color: #f87171; }
+  .hero-sub { margin-top: 4px; font-size: 12px; color: var(--muted); max-width: 280px; }
+  .hero-ver { margin-top: 14px; font-size: 11px; color: #93c5fd; border: 1px solid #1e4fb8; border-radius: 999px; padding: 3px 11px; background: rgba(59,130,246,0.10); }
 
   table { width: 100%; border-collapse: collapse; }
   th { text-align: left; font-size: 12px; font-weight: 500; color: var(--muted); padding: 10px 8px; border-bottom: 1px solid var(--line); }
   td { padding: 14px 8px; font-size: 13px; }
   .empty { text-align: center; color: #5b6880; padding: 34px 8px; font-size: 13px; }
-
-  .terminal {
-    background: #060a12; border: 1px solid var(--line); border-radius: 8px;
-    padding: 14px; font-family: Consolas, 'Courier New', monospace; font-size: 12.5px;
-    line-height: 1.8; height: 190px; overflow-y: auto; white-space: pre-wrap;
-  }
+  .terminal { background: #060a12; border: 1px solid var(--line); border-radius: 8px; padding: 14px; font-family: Consolas, 'Courier New', monospace; font-size: 12.5px; line-height: 1.7; height: 190px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
   .l-info { color: #86efac; }
   .l-err { color: #f87171; }
   .l-dim { color: #64748b; }
   .view-all { font-size: 12px; color: #4d8dff; }
-  .hidden { display: none; }
 
   @media (max-width: 1150px) {
     .grid1, .grid2 { grid-template-columns: 1fr; }
@@ -230,8 +195,8 @@
           <input type="text" id="repoUrl" placeholder="https://github.com/username/repo" autocomplete="off">
           <button type="button" class="btn btn-ghost" id="scanBtn">Scan</button>
         </div>
+        <div class="msg info" id="scanMsg"></div>
       </div>
-      <div class="msg info" id="scanMsg"></div>
 
       <div class="two">
         <div class="field">
@@ -248,7 +213,13 @@
           </select>
         </div>
       </div>
-      <div class="msg info" id="appNote" style="margin-top:-8px;"></div>
+      <div class="msg info" id="appNote" style="margin-top:-8px; margin-bottom:12px;"></div>
+
+      <div class="field">
+        <label for="nameInput">Application name</label>
+        <input type="text" id="nameInput" placeholder="my-portfolio" autocomplete="off" maxlength="41" disabled>
+        <div class="msg info" id="nameMsg">Used in your app URL. Lowercase letters, digits and hyphen.</div>
+      </div>
 
       <label>Options</label>
       <div class="opts" id="opts">
@@ -257,11 +228,11 @@
           Docker
         </div>
         <div class="opt off" data-opt="static">
-          <img src="https://cdn.simpleicons.org/html5/E34F26" width="26" height="26" alt="HTML5">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c3cde0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
           Static
         </div>
         <div class="opt off" data-opt="flask">
-          <img src="https://cdn.simpleicons.org/flask/ffffff" width="26" height="26" alt="Flask">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6L4.5 18.5A2 2 0 0 0 6.3 21h11.4a2 2 0 0 0 1.8-2.5L14 9V3"/><path d="M7.5 15h9"/></svg>
           Flask
         </div>
         <div class="opt off" data-opt="node">
@@ -277,12 +248,13 @@
       <section class="card">
         <h3 class="card-title">Deployment Status</h3>
         <div class="steps">
-          <div class="step"><span class="step-dot"></span>Repository Cloned</div>
-          <div class="step"><span class="step-dot"></span>Validation Passed</div>
-          <div class="step"><span class="step-dot"></span>Docker Image Built</div>
-          <div class="step"><span class="step-dot"></span>Container Started</div>
-          <div class="step"><span class="step-dot"></span>Health Check</div>
+          <div class="step" id="step0"><span class="step-dot"></span>Repository Cloned</div>
+          <div class="step" id="step1"><span class="step-dot"></span>Validation Passed</div>
+          <div class="step" id="step2"><span class="step-dot"></span>Docker Image Built</div>
+          <div class="step" id="step3"><span class="step-dot"></span>Container Started</div>
+          <div class="step" id="step4"><span class="step-dot"></span>Health Check</div>
         </div>
+        <div class="fail-box" id="failBox" style="display:none;"></div>
       </section>
       <section class="card">
         <h3 class="card-title">Application Health</h3>
@@ -296,7 +268,7 @@
       </section>
       <section class="card">
         <h3 class="card-title">Live Application</h3>
-        <div class="live-link">Available after a successful deployment</div>
+        <div class="live-link">Available after the Nginx route is set up</div>
       </section>
     </div>
 
@@ -304,8 +276,8 @@
       <svg class="hero-logo" width="150" height="150"><use href="#logo"/></svg>
       <h2 class="grad">DeployForge</h2>
       <div class="hero-tag">Deploy smarter. Heal faster.<br>Automated deployment with validation, health checks and self-healing.</div>
-      <div class="hero-ready">Ready to Deploy?</div>
-      <div class="hero-sub">Fill in the details and start your deployment.</div>
+      <div class="hero-ready" id="heroTitle">Ready to Deploy?</div>
+      <div class="hero-sub" id="heroSub">Fill in the details and start your deployment.</div>
       <span class="hero-ver">Version 2</span>
     </section>
   </div>
@@ -342,15 +314,26 @@
   var appSel = document.getElementById('appSel');
   var appNote = document.getElementById('appNote');
   var templateSel = document.getElementById('templateSel');
+  var nameInput = document.getElementById('nameInput');
+  var nameMsg = document.getElementById('nameMsg');
   var deployBtn = document.getElementById('deployBtn');
   var logBox = document.getElementById('logBox');
+  var failBox = document.getElementById('failBox');
+  var heroTitle = document.getElementById('heroTitle');
+  var heroSub = document.getElementById('heroSub');
   var optCards = document.querySelectorAll('.opt');
 
+  var NAME_RE = /^[a-z0-9][a-z0-9-]{0,40}$/;
   var apps = [];
   var current = null;
   var chosen = '';
+  var nameOk = false;
+  var deploying = false;
+  var nameTimer = null;
+  var pollTimer = null;
+  var pollErrors = 0;
 
-  function addLog(text, cls) {
+  function logLine(text, cls) {
     var line = document.createElement('div');
     line.className = cls || 'l-info';
     line.textContent = text;
@@ -358,13 +341,42 @@
     logBox.scrollTop = logBox.scrollHeight;
   }
 
-  function setMsg(text, kind) {
-    scanMsg.textContent = text;
-    scanMsg.className = 'msg ' + kind;
+  function showLogs(lines) {
+    logBox.innerHTML = '';
+    lines.forEach(function (l) {
+      var cls = 'l-dim';
+      if (/FAILED|ERROR|fatal:|\[FAIL\]|Invalid [A-Z_]+/.test(l)) { cls = 'l-err'; }
+      else if (/PASS|OK|SUCCESS|Successfully/i.test(l)) { cls = 'l-info'; }
+      logLine(l, cls);
+    });
   }
 
-  function displayName(app) {
-    return app.name === '.' ? 'Repository root' : app.name;
+  function setMsg(text, kind) { scanMsg.textContent = text; scanMsg.className = 'msg ' + kind; }
+  function setNameMsg(text, kind) { nameMsg.textContent = text; nameMsg.className = 'msg ' + kind; }
+  function displayName(app) { return app.name === '.' ? 'Repository root' : app.name; }
+
+  function repoName() {
+    var u = repoInput.value.trim().replace(/\/+$/, '').replace(/\.git$/, '');
+    return u.split('/').pop() || '';
+  }
+
+  function slug(text) {
+    return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+/, '').replace(/-+$/, '').substring(0, 41).replace(/-+$/, '');
+  }
+
+  function suggestName(app) {
+    var base = slug(repoName());
+    if (app.name === '.') { return base; }
+    return slug(base + '-' + app.name);
+  }
+
+  function updateDeployBtn() {
+    var ready = false;
+    if (!deploying && current !== null) {
+      var app = apps[current];
+      ready = (app.dockerfile_found || !!chosen) && nameOk;
+    }
+    deployBtn.disabled = !ready;
   }
 
   function setCards() {
@@ -373,65 +385,80 @@
       var on = false, off = true;
       if (current !== null) {
         var app = apps[current];
-        if (app.dockerfile_found) {
-          on = (key === 'docker');
-          off = (key !== 'docker');
-        } else {
-          off = (key === 'docker');
-          on = (key === chosen);
-        }
+        if (app.dockerfile_found) { on = (key === 'docker'); off = (key !== 'docker'); }
+        else { off = (key === 'docker'); on = (key === chosen); }
       }
       c.className = 'opt' + (on ? ' on' : '') + (off ? ' off' : '');
     });
   }
 
   function syncUI() {
+    var locked = deploying;
     if (current === null) {
       templateSel.disabled = true;
       templateSel.value = '';
-      deployBtn.disabled = true;
-      setCards();
-      return;
-    }
-    var app = apps[current];
-    if (app.dockerfile_found) {
-      templateSel.value = '';
-      templateSel.disabled = true;
-      deployBtn.disabled = false;
+      nameInput.disabled = true;
     } else {
-      templateSel.disabled = false;
-      templateSel.value = chosen;
-      deployBtn.disabled = !chosen;
+      var app = apps[current];
+      nameInput.disabled = locked;
+      if (app.dockerfile_found) {
+        templateSel.value = '';
+        templateSel.disabled = true;
+      } else {
+        templateSel.disabled = locked;
+        templateSel.value = chosen;
+      }
     }
+    appSel.disabled = locked || apps.length === 0;
+    scanBtn.disabled = locked;
+    repoInput.disabled = locked;
     setCards();
+    updateDeployBtn();
   }
+
+  function checkNameNow() {
+    var n = nameInput.value.trim();
+    nameOk = false;
+    updateDeployBtn();
+    if (!n) { setNameMsg('Enter a name for your application.', 'info'); return; }
+    if (!NAME_RE.test(n)) { setNameMsg('Use lowercase letters, digits and hyphen only (max 41 characters).', 'error'); return; }
+    setNameMsg('Checking availability...', 'info');
+    fetch('/check-name?name=' + encodeURIComponent(n)).then(function (r) { return r.json(); }).then(function (d) {
+      if (nameInput.value.trim() !== n) { return; }
+      if (d.status === 'ok' && d.available) { nameOk = true; setNameMsg('Available', 'ok'); }
+      else if (d.status === 'ok') { setNameMsg('Already in use, please choose another name.', 'error'); }
+      else { setNameMsg(d.message || 'Could not check the name', 'error'); }
+      updateDeployBtn();
+    }).catch(function () { setNameMsg('Could not check the name right now', 'error'); });
+  }
+
+  nameInput.addEventListener('input', function () {
+    nameOk = false;
+    updateDeployBtn();
+    clearTimeout(nameTimer);
+    nameTimer = setTimeout(checkNameNow, 500);
+  });
 
   function onAppChange() {
     var v = appSel.value;
-    if (v === '') { current = null; chosen = ''; syncUI(); return; }
+    if (v === '') { current = null; chosen = ''; nameInput.value = ''; nameOk = false; syncUI(); return; }
     current = parseInt(v, 10);
     var app = apps[current];
     chosen = app.dockerfile_found ? '' : (app.suggested_template || '');
-    if (app.dockerfile_found) {
-      addLog('Selected "' + displayName(app) + '": existing Dockerfile will be used', 'l-info');
-    } else if (chosen) {
-      addLog('Selected "' + displayName(app) + '": no Dockerfile, suggested template ' + chosen, 'l-dim');
-    } else {
-      addLog('Selected "' + displayName(app) + '": no Dockerfile, please choose a template', 'l-dim');
-    }
+    if (app.dockerfile_found) { logLine('Selected "' + displayName(app) + '": existing Dockerfile will be used', 'l-info'); }
+    else if (chosen) { logLine('Selected "' + displayName(app) + '": no Dockerfile, suggested template ' + chosen, 'l-dim'); }
+    else { logLine('Selected "' + displayName(app) + '": no Dockerfile, please choose a template', 'l-dim'); }
+    nameInput.value = suggestName(app);
     syncUI();
+    checkNameNow();
   }
 
   appSel.addEventListener('change', onAppChange);
-
-  templateSel.addEventListener('change', function () {
-    chosen = templateSel.value;
-    syncUI();
-  });
+  templateSel.addEventListener('change', function () { chosen = templateSel.value; syncUI(); });
 
   optCards.forEach(function (c) {
     c.addEventListener('click', function () {
-      if (c.classList.contains('off') || current === null) return;
+      if (deploying || c.classList.contains('off') || current === null) return;
       var key = c.getAttribute('data-opt');
       if (key === 'docker') return;
       chosen = key;
@@ -442,8 +469,7 @@
   function fillApps() {
     appSel.innerHTML = '';
     var first = document.createElement('option');
-    first.value = '';
-    first.textContent = 'Select application';
+    first.value = ''; first.textContent = 'Select application';
     appSel.appendChild(first);
     var notes = [];
     apps.forEach(function (app, i) {
@@ -453,9 +479,7 @@
         o.textContent = displayName(app) + ' (not supported)';
         o.disabled = true;
         notes.push(displayName(app) + ': ' + (app.reason || 'not supported'));
-      } else {
-        o.textContent = displayName(app);
-      }
+      } else { o.textContent = displayName(app); }
       appSel.appendChild(o);
     });
     appSel.disabled = false;
@@ -466,63 +490,136 @@
   scanBtn.addEventListener('click', async function () {
     var url = repoInput.value.trim();
     if (!url) { setMsg('Please enter a repository URL', 'error'); return; }
-
     scanBtn.disabled = true;
     scanBtn.textContent = 'Scanning...';
     setMsg('Cloning and scanning repository...', 'info');
-    addLog('Scanning ' + url + ' ...', 'l-dim');
+    logLine('Scanning ' + url + ' ...', 'l-dim');
     current = null; chosen = ''; appNote.textContent = '';
+    nameInput.value = ''; nameOk = false;
     syncUI();
-
     try {
       var body = new URLSearchParams();
       body.append('repo_url', url);
       var res = await fetch('/detect', { method: 'POST', body: body });
       var data = await res.json();
-
       if (!res.ok || data.status !== 'ok') {
         setMsg(data.message || 'Scan failed', 'error');
-        addLog('Scan failed: ' + (data.message || 'unknown error'), 'l-err');
+        logLine('Scan failed: ' + (data.message || 'unknown error'), 'l-err');
         return;
       }
-
       apps = data.apps;
       fillApps();
       var ok = [];
       apps.forEach(function (a, i) { if (a.supported !== false) ok.push(i); });
       setMsg(apps.length + (apps.length === 1 ? ' application' : ' applications') + ' detected', 'ok');
-      addLog('Scan complete: ' + apps.length + ' application(s) found', 'l-info');
-
-      if (ok.length === 1) {
-        appSel.value = String(ok[0]);
-        onAppChange();
-      }
+      logLine('Scan complete: ' + apps.length + ' application(s) found', 'l-info');
+      if (ok.length === 1) { appSel.value = String(ok[0]); onAppChange(); }
     } catch (err) {
       setMsg('Could not reach the server', 'error');
-      addLog('Could not reach the server', 'l-err');
+      logLine('Could not reach the server', 'l-err');
     } finally {
-      scanBtn.disabled = false;
+      scanBtn.disabled = deploying;
       scanBtn.textContent = 'Scan';
     }
   });
 
-  repoInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { scanBtn.click(); }
-  });
+  repoInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { scanBtn.click(); } });
 
-  deployBtn.addEventListener('click', function () {
+  function renderSteps(steps) {
+    for (var i = 0; i < 5; i++) {
+      var el = document.getElementById('step' + i);
+      var st = (steps && steps[i]) ? steps[i].state : 'pending';
+      el.className = 'step ' + st;
+      var dot = el.querySelector('.step-dot');
+      dot.textContent = st === 'success' ? '\u2713' : (st === 'failed' ? '\u2715' : '');
+    }
+  }
+
+  function setHero(title, sub, cls) {
+    heroTitle.textContent = title;
+    heroTitle.className = 'hero-ready ' + (cls || '');
+    heroSub.textContent = sub;
+  }
+
+  function finishDeploy(data) {
+    clearInterval(pollTimer);
+    deploying = false;
+    if (data.result === 'SUCCESS') {
+      setHero('Deployed', 'Your application passed the health check.', 'good');
+      logLine('Deployment finished successfully.', 'l-info');
+    } else {
+      setHero('Deployment Failed', 'Check the status and logs.', 'bad');
+      failBox.textContent = data.reason || 'Deployment failed. See the logs.';
+      failBox.style.display = 'block';
+    }
+    nameOk = false;
+    syncUI();
+    checkNameNow();
+  }
+
+  async function pollOnce(queuePath) {
+    try {
+      var res = await fetch('/deploy-status?queue_path=' + encodeURIComponent(queuePath));
+      var data = await res.json();
+      pollErrors = 0;
+      if (data.status === 'error') { throw new Error(data.message); }
+      renderSteps(data.steps);
+      if (data.logs && data.logs.length) { showLogs(data.logs); }
+      if (data.status === 'finished') { finishDeploy(data); }
+    } catch (e) {
+      pollErrors += 1;
+      if (pollErrors >= 5) {
+        clearInterval(pollTimer);
+        deploying = false;
+        setHero('Status Unavailable', 'Lost contact with the server.', 'bad');
+        logLine('Could not read deployment status.', 'l-err');
+        syncUI();
+      }
+    }
+  }
+
+  deployBtn.addEventListener('click', async function () {
+    if (current === null) return;
     var app = apps[current];
-    var payload = {
-      repo_url: repoInput.value.trim(),
-      app_path: app.path,
-      dockerfile_present: !!app.dockerfile_found,
-      template: app.dockerfile_found ? null : chosen
-    };
-    addLog('Deployment request prepared (pipeline connects in Step 8):', 'l-info');
-    addLog(JSON.stringify(payload, null, 2), 'l-dim');
+    var body = new URLSearchParams();
+    body.append('repo_url', repoInput.value.trim());
+    body.append('app_path', app.path);
+    body.append('template', app.dockerfile_found ? '' : chosen);
+    body.append('app_name', nameInput.value.trim());
+
+    deploying = true;
+    failBox.style.display = 'none';
+    renderSteps([]);
+    logBox.innerHTML = '';
+    logLine('Starting deployment of "' + nameInput.value.trim() + '" ...', 'l-info');
+    setHero('Deploying...', 'This can take a few minutes.', '');
+    syncUI();
+
+    try {
+      var res = await fetch('/deploy', { method: 'POST', body: body });
+      var data = await res.json();
+      if (!res.ok || data.status !== 'triggered') {
+        deploying = false;
+        setHero('Could not start', data.message || 'Request rejected.', 'bad');
+        logLine('Deploy request failed: ' + (data.message || 'unknown error'), 'l-err');
+        syncUI();
+        checkNameNow();
+        return;
+      }
+      pollErrors = 0;
+      var q = data.queue_path;
+      pollTimer = setInterval(function () { pollOnce(q); }, 3000);
+      pollOnce(q);
+    } catch (err) {
+      deploying = false;
+      setHero('Could not start', 'Server not reachable.', 'bad');
+      logLine('Could not reach the server', 'l-err');
+      syncUI();
+    }
   });
 
-  addLog('DeployForge ready. Enter a repository URL and scan.', 'l-dim');
+  logLine('DeployForge ready. Enter a repository URL and scan.', 'l-dim');
+  renderSteps([]);
 </script>
 </body>
 </html>
