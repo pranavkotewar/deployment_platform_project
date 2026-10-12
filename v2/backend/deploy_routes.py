@@ -192,3 +192,26 @@ def deploy_status():
                         'build_number': num, 'steps': steps, 'reason': reason, 'logs': lines, 'live_url': live_url})
     except requests.exceptions.RequestException:
         return jsonify({'status': 'error', 'message': 'Could not reach Jenkins'}), 502
+
+
+@deploy_bp.route('/health')
+def health():
+    name = (request.args.get('name') or '').strip()
+    if not NAME_RE.match(name):
+        return jsonify({'status': 'error', 'message': 'Invalid name'}), 400
+    try:
+        r = subprocess.run(
+            ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', VM2_HOST,
+             'cat', '~/deployforge/health.db'],
+            capture_output=True, text=True, timeout=15)
+    except subprocess.TimeoutExpired:
+        return jsonify({'status': 'error', 'message': 'Health data timed out'}), 504
+    if r.returncode != 0:
+        return jsonify({'status': 'ok', 'found': False})
+    for line in r.stdout.splitlines():
+        parts = line.split()
+        if len(parts) == 6 and parts[0] == name:
+            return jsonify({'status': 'ok', 'found': True, 'health': parts[1],
+                            'code': parts[2], 'checked_at': int(parts[3]),
+                            'restarts': int(parts[4])})
+    return jsonify({'status': 'ok', 'found': False})

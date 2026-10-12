@@ -259,12 +259,13 @@
       <section class="card">
         <h3 class="card-title">Application Health</h3>
         <div class="health-row">
-          <div class="health-state"><span class="health-dot"></span>NO DATA</div>
+          <div class="health-state"><span class="health-dot" id="hDot"></span><span id="hText">NO DATA</span></div>
           <div class="health-meta">
-            <div>Last Check<b>--:--:--</b></div>
-            <div>Response<b>--</b></div>
+            <div>Last Check<b id="hTime">--:--:--</b></div>
+            <div>Response<b id="hCode">--</b></div>
           </div>
         </div>
+        <div class="msg info" id="hNote" style="margin-top:10px;"></div>
       </section>
       <section class="card">
         <h3 class="card-title">Live Application</h3>
@@ -638,6 +639,39 @@
       syncUI();
     }
   });
+
+  var H_COLORS = { healthy: '#22c55e', unhealthy: '#f59e0b', healing: '#f59e0b', failed: '#ef4444' };
+  var H_NOTES = {
+    healthy: '',
+    unhealthy: 'Not responding. Will be restarted if it does not recover.',
+    healing: 'Self-healing: restarting the application.',
+    failed: 'Failed after 3 automatic restarts. Check the application logs.'
+  };
+
+  function pollHealth() {
+    if (!deployedName) { return; }
+    fetch('/health?name=' + encodeURIComponent(deployedName)).then(function (r) { return r.json(); }).then(function (d) {
+      var dot = document.getElementById('hDot');
+      var text = document.getElementById('hText');
+      var tEl = document.getElementById('hTime');
+      var cEl = document.getElementById('hCode');
+      var note = document.getElementById('hNote');
+      if (d.status !== 'ok' || !d.found) {
+        if (deploying) { return; }
+        dot.style.background = '#2a3957'; text.style.color = '#8a97ad';
+        text.textContent = 'NO DATA'; tEl.textContent = '--:--:--'; cEl.textContent = '--'; note.textContent = '';
+        return;
+      }
+      var color = H_COLORS[d.health] || '#8a97ad';
+      dot.style.background = color;
+      text.style.color = color;
+      text.textContent = d.health.toUpperCase();
+      tEl.textContent = new Date(d.checked_at * 1000).toLocaleTimeString();
+      cEl.textContent = d.code === '000' ? 'No response' : 'HTTP ' + d.code;
+      note.textContent = H_NOTES[d.health] || '';
+    }).catch(function () {});
+  }
+  setInterval(pollHealth, 10000);
 
   logLine('DeployForge ready. Enter a repository URL and scan.', 'l-dim');
   renderSteps([]);
