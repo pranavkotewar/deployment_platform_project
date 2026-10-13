@@ -93,6 +93,13 @@ check_all() {
             fails=$((fails + 1))
             if [ "$restarts" -ge "$MAX_RESTARTS" ]; then
                 status=failed
+                if [ $((now % 300)) -lt 15 ]; then
+                    if ! exists "$name"; then
+                        docker run -d --restart unless-stopped --name "$name" -p "$hport:$cport" "$name:latest" > /dev/null 2>&1 < /dev/null
+                    elif ! is_running "$name"; then
+                        docker start "$name" > /dev/null 2>&1 < /dev/null
+                    fi
+                fi
             elif ! exists "$name"; then
                 docker run -d --restart unless-stopped --name "$name" -p "$hport:$cport" "$name:latest" > /dev/null 2>&1 < /dev/null
                 restarts=$((restarts + 1)); fails=0; status=healing
