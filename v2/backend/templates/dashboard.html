@@ -671,7 +671,7 @@
       note.textContent = H_NOTES[d.health] || '';
     }).catch(function () {});
   }
-  setInterval(pollHealth, 10000);
+  setInterval(pollHealth, 5000);
 
   var BADGE = { healthy: ['Healthy', '#22c55e'], unhealthy: ['Unhealthy', '#f59e0b'], healing: ['Healing', '#f59e0b'], failed: ['Failed', '#ef4444'], unknown: ['Unknown', '#8a97ad'] };
 
@@ -745,7 +745,7 @@
     }).catch(function () {});
   }
   loadHistory();
-  setInterval(loadHistory, 10000);
+  setInterval(loadHistory, 5000);
 
   logLine('DeployForge ready. Enter a repository URL and scan.', 'l-dim');
   renderSteps([]);

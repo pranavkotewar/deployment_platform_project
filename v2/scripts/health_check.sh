@@ -24,6 +24,18 @@ is_healthy() {
     [ "$1" != "000" ] && [ "$1" -lt 500 ] 2>/dev/null
 }
 
+write_one() {
+    mkdir -p "$DF"
+    exec 6>"$LOCK"
+    flock -w 10 6 || return 0
+    local tmp
+    tmp=$(mktemp "$DF/health.XXXXXX") || return 0
+    [ -f "$HDB" ] && awk -v n="$1" 'NF==6 && $1!=n {print}' "$HDB" > "$tmp"
+    echo "$1 healthy $2 $(date +%s) 0 0" >> "$tmp"
+    chmod 644 "$tmp"
+    mv "$tmp" "$HDB"
+}
+
 wait_mode() {
     local APP="$1" PORT="$2" i code
     for ((i=1; i<=15; i++)); do
@@ -31,6 +43,7 @@ wait_mode() {
             code=$(probe "$PORT")
             if is_healthy "$code"; then
                 echo "HEALTH OK: HTTP $code (attempt $i)"
+                write_one "$APP" "$code"
                 exit 0
             fi
             echo "Attempt $i: no healthy response yet (HTTP $code)"
