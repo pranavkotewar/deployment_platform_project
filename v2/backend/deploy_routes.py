@@ -215,3 +215,37 @@ def health():
                             'code': parts[2], 'checked_at': int(parts[3]),
                             'restarts': int(parts[4])})
     return jsonify({'status': 'ok', 'found': False})
+
+
+def _ssh_cat(path):
+    r = subprocess.run(
+        ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', VM2_HOST, 'cat', path],
+        capture_output=True, text=True, timeout=15)
+    return r.stdout if r.returncode == 0 else ''
+
+
+@deploy_bp.route('/history')
+def history():
+    try:
+        deps = _ssh_cat('~/deployforge/deployments.db')
+        hlth = _ssh_cat('~/deployforge/health.db')
+    except subprocess.TimeoutExpired:
+        return jsonify({'status': 'error', 'message': 'History timed out'}), 504
+    health = {}
+    for line in hlth.splitlines():
+        p = line.split()
+        if len(p) == 6:
+            health[p[0]] = {'health': p[1], 'code': p[2], 'checked_at': int(p[3])}
+    items = []
+    for line in deps.splitlines():
+        p = line.split()
+        if len(p) != 5 or not NAME_RE.match(p[0]):
+            continue
+        h = health.get(p[0], {})
+        items.append({'name': p[0], 'repo': p[1], 'app_path': p[2],
+                      'template': None if p[3] == '-' else p[3],
+                      'deployed_at': int(p[4]),
+                      'health': h.get('health', 'unknown'), 'code': h.get('code'),
+                      'live_url': f'{APP_BASE_URL}/apps/{p[0]}/'})
+    items.sort(key=lambda x: x['deployed_at'], reverse=True)
+    return jsonify({'status': 'ok', 'items': items})

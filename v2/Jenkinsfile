@@ -116,6 +116,10 @@ pipeline {
             }
         }
         success {
+            sh '''
+            CLEAN_REPO=$(echo "$REPO_URL" | sed -E 's#/+$##; s#\.git$##')
+            ssh -n "$VM2_HOST" "bash deployforge/scripts/record.sh add '$APP_NAME' '$CLEAN_REPO' '$APP_PATH' '${TEMPLATE:--}'" || true
+            '''
             echo "DEPLOY SUCCESS: ${params.APP_NAME} on VM2 port ${env.HPORT} (container port ${env.CPORT})"
         }
         failure {

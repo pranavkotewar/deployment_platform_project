@@ -288,7 +288,7 @@
       <div class="card-head"><h3 class="card-title">Recent Deployments</h3><span class="view-all">View all</span></div>
       <table>
         <thead><tr><th>Application</th><th>Repository</th><th>Deployed At</th><th>Status</th><th>Live URL</th></tr></thead>
-        <tbody><tr><td colspan="5" class="empty">No deployments yet. Your deployments will appear here.</td></tr></tbody>
+        <tbody id="recentBody"><tr><td colspan="5" class="empty">No deployments yet. Your deployments will appear here.</td></tr></tbody>
       </table>
     </section>
 
@@ -301,7 +301,7 @@
         <div class="card-head"><h3 class="card-title">Deployment History</h3><span class="view-all">View all</span></div>
         <table>
           <thead><tr><th>Application</th><th>Live URL</th><th>Status</th></tr></thead>
-          <tbody><tr><td colspan="3" class="empty">No history yet.</td></tr></tbody>
+          <tbody id="historyBody"><tr><td colspan="3" class="empty">No history yet.</td></tr></tbody>
         </table>
       </section>
     </div>
@@ -672,6 +672,74 @@
     }).catch(function () {});
   }
   setInterval(pollHealth, 10000);
+
+  var BADGE = { healthy: ['Healthy', '#22c55e'], unhealthy: ['Unhealthy', '#f59e0b'], healing: ['Healing', '#f59e0b'], failed: ['Failed', '#ef4444'], unknown: ['Unknown', '#8a97ad'] };
+
+  function td(text) { var c = document.createElement('td'); c.textContent = text; return c; }
+
+  function badgeCell(h) {
+    var c = document.createElement('td');
+    var b = BADGE[h] || BADGE.unknown;
+    var span = document.createElement('span');
+    span.textContent = '\u25CF ' + b[0];
+    span.style.color = b[1];
+    span.style.background = 'rgba(255,255,255,0.05)';
+    span.style.padding = '3px 10px';
+    span.style.borderRadius = '999px';
+    span.style.fontSize = '12px';
+    c.appendChild(span);
+    return c;
+  }
+
+  function linkCell(url) {
+    var c = document.createElement('td');
+    var a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    a.textContent = url.replace(/^https?:\/\//, '');
+    a.style.color = '#4d8dff';
+    a.style.wordBreak = 'break-all';
+    c.appendChild(a);
+    return c;
+  }
+
+  function fmtTime(e) {
+    return new Date(e * 1000).toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function emptyRow(cols, text) {
+    var tr = document.createElement('tr');
+    var c = td(text); c.colSpan = cols; c.className = 'empty';
+    tr.appendChild(c);
+    return tr;
+  }
+
+  function loadHistory() {
+    fetch('/history').then(function (r) { return r.json(); }).then(function (d) {
+      if (d.status !== 'ok') { return; }
+      var rb = document.getElementById('recentBody');
+      var hb = document.getElementById('historyBody');
+      rb.innerHTML = ''; hb.innerHTML = '';
+      if (!d.items.length) {
+        rb.appendChild(emptyRow(5, 'No deployments yet. Your deployments will appear here.'));
+        hb.appendChild(emptyRow(3, 'No history yet.'));
+        return;
+      }
+      d.items.forEach(function (it, i) {
+        var repo = it.repo.replace('https://github.com/', '') + (it.app_path !== '.' ? '/' + it.app_path : '');
+        var tr = document.createElement('tr');
+        tr.appendChild(td(it.name)); tr.appendChild(td(repo)); tr.appendChild(td(fmtTime(it.deployed_at)));
+        tr.appendChild(badgeCell(it.health)); tr.appendChild(linkCell(it.live_url));
+        rb.appendChild(tr);
+        if (i < 5) {
+          var t2 = document.createElement('tr');
+          t2.appendChild(td(it.name)); t2.appendChild(linkCell(it.live_url)); t2.appendChild(badgeCell(it.health));
+          hb.appendChild(t2);
+        }
+      });
+    }).catch(function () {});
+  }
+  loadHistory();
+  setInterval(loadHistory, 10000);
 
   logLine('DeployForge ready. Enter a repository URL and scan.', 'l-dim');
   renderSteps([]);
