@@ -1,6 +1,12 @@
 import os
 import re
 import subprocess
+import hashlib
+import hmac
+import json
+import secrets
+import threading
+import time
 import requests
 from flask import Blueprint, request, jsonify
 
@@ -60,7 +66,9 @@ def check_name():
         free = name_is_free(name)
     except Exception:
         return jsonify({'status': 'error', 'message': 'Could not check the name right now'}), 500
-    return jsonify({'status': 'ok', 'available': free})
+    mine = owns(name)
+    available = free and (mine or not _is_pending(name))
+    return jsonify({'status': 'ok', 'available': available, 'owned': mine and not free})
 
 
 @deploy_bp.route('/deploy', methods=['POST'])
@@ -69,7 +77,6 @@ def deploy():
     app_path = (request.form.get('app_path') or '.').strip()
     template = (request.form.get('template') or '').strip()
     app_name = (request.form.get('app_name') or '').strip()
-    allow_existing = request.form.get('allow_existing') == 'true'  # temporary, Step 11 mein token
 
     def bad(msg, code=400):
         return jsonify({'status': 'error', 'message': msg}), code
@@ -84,10 +91,23 @@ def deploy():
         return bad('Invalid application name (lowercase letters, digits, hyphen)')
 
     try:
-        if not allow_existing and not name_is_free(app_name):
-            return bad('This name is already in use, please choose another', 409)
+        free = name_is_free(app_name)
     except Exception:
         return bad('Could not check the application name', 500)
+    mine = owns(app_name)
+    if not free and not mine:
+        return bad('This name is already in use, please choose another', 409)
+    new_token = None
+    if free:
+        with _lock:
+            if not mine and _is_pending(app_name):
+                return bad('This name is being deployed right now, please choose another', 409)
+            PENDING[app_name] = time.time()
+            if not mine:
+                new_token = secrets.token_hex(16)
+                d = _load_tokens()
+                d[app_name] = _hash(new_token)
+                _save_tokens(d)
 
     try:
         s = requests.Session()
@@ -109,7 +129,7 @@ def deploy():
     m = re.search(r'/queue/item/[0-9]+/?$', queue_url)
     if not m:
         return bad('Jenkins did not return a queue item', 502)
-    return jsonify({'status': 'triggered', 'queue_path': m.group(0)})
+    return jsonify({'status': 'triggered', 'queue_path': m.group(0), 'token': new_token})
 
 
 def step_states(stages):
@@ -249,3 +269,93 @@ def history():
                       'live_url': f'{APP_BASE_URL}/apps/{p[0]}/'})
     items.sort(key=lambda x: x['deployed_at'], reverse=True)
     return jsonify({'status': 'ok', 'items': items})
+
+
+# ---------- token / admin access ----------
+TOKEN_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'tokens.json')
+ADMIN_KEY = os.getenv('ADMIN_KEY', '')
+_lock = threading.Lock()
+PENDING = {}
+
+
+def _is_pending(name):
+    t = PENDING.get(name)
+    return bool(t) and (time.time() - t) < 900
+
+
+def _load_tokens():
+    try:
+        with open(TOKEN_FILE) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_tokens(d):
+    os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
+    tmp = TOKEN_FILE + '.tmp'
+    with open(tmp, 'w') as f:
+        json.dump(d, f)
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, TOKEN_FILE)
+
+
+def _hash(t):
+    return hashlib.sha256(t.encode()).hexdigest()
+
+
+def _same(a, b):
+    return hmac.compare_digest(a.encode(), b.encode())
+
+
+def is_admin():
+    k = request.headers.get('X-Admin-Key', '')
+    return bool(ADMIN_KEY) and _same(k, ADMIN_KEY)
+
+
+def owns(name):
+    if is_admin():
+        return True
+    t = request.headers.get('X-Deploy-Token', '')
+    h = _load_tokens().get(name)
+    return bool(t and h and _same(_hash(t), h))
+
+
+@deploy_bp.route('/manage', methods=['POST'])
+def manage():
+    name = (request.form.get('name') or '').strip()
+    action = (request.form.get('action') or '').strip()
+    if not NAME_RE.match(name) or action not in ('delete', 'restart', 'logs'):
+        return jsonify({'status': 'error', 'message': 'Invalid request'}), 400
+    try:
+        if name_is_free(name):
+            return jsonify({'status': 'error', 'message': 'Application not found'}), 404
+    except Exception:
+        return jsonify({'status': 'error', 'message': 'Could not check the application'}), 500
+    if not owns(name):
+        return jsonify({'status': 'error', 'message': 'You do not have access to manage this application'}), 403
+
+    d = '~/deployforge/scripts'
+    if action == 'delete':
+        cmd = (f"bash {d}/assign_port.sh release {name}; docker rm -f {name} >/dev/null 2>&1; "
+               f"bash {d}/generate_nginx_route.sh remove {name}; bash {d}/record.sh remove {name}")
+    elif action == 'restart':
+        cmd = f"docker restart {name}"
+    else:
+        cmd = f"docker logs --tail 100 {name} 2>&1"
+    try:
+        r = subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', VM2_HOST, cmd],
+                           stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=60)
+    except subprocess.TimeoutExpired:
+        return jsonify({'status': 'error', 'message': 'Action timed out'}), 504
+    if action != 'logs' and r.returncode != 0:
+        return jsonify({'status': 'error', 'message': 'Action failed'}), 500
+    if action == 'delete':
+        with _lock:
+            t = _load_tokens()
+            t.pop(name, None)
+            _save_tokens(t)
+            PENDING.pop(name, None)
+    if action == 'logs':
+        return jsonify({'status': 'ok', 'logs': r.stdout.splitlines()[-100:]})
+    return jsonify({'status': 'ok', 'message': 'Done'})

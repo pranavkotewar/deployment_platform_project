@@ -8,3 +8,4 @@ venv/
 ngrok_vm1_env
 *.log
 context.md
+v2/backend/data/
