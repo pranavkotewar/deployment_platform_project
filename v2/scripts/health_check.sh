@@ -14,6 +14,10 @@ is_running() {
     [ -n "$(docker ps -q --filter "name=^${1}$" --filter status=running < /dev/null)" ]
 }
 
+exists() {
+    [ -n "$(docker ps -aq --filter "name=^${1}$" < /dev/null)" ]
+}
+
 probe() {
     local c
     c=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "http://127.0.0.1:$1/" < /dev/null)
@@ -89,6 +93,9 @@ check_all() {
             fails=$((fails + 1))
             if [ "$restarts" -ge "$MAX_RESTARTS" ]; then
                 status=failed
+            elif ! exists "$name"; then
+                docker run -d --restart unless-stopped --name "$name" -p "$hport:$cport" "$name:latest" > /dev/null 2>&1 < /dev/null
+                restarts=$((restarts + 1)); fails=0; status=healing
             elif ! is_running "$name"; then
                 docker start "$name" > /dev/null 2>&1 < /dev/null
                 restarts=$((restarts + 1)); fails=0; status=healing
