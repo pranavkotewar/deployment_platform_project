@@ -170,6 +170,7 @@
     <span class="brand-tag">Deploy smarter. Heal faster.</span>
   </div>
   <div class="top-right">
+    <a href="#" id="adminLink" style="font-size:12px;color:#8a97ad;text-decoration:none;border:1px solid #1b2740;border-radius:999px;padding:5px 12px;">Admin</a>
     <span class="online"><span class="pulse"></span>System Online</span>
     <span class="badge">Version 2</span>
   </div>
@@ -257,7 +258,7 @@
         <div class="fail-box" id="failBox" style="display:none;"></div>
       </section>
       <section class="card">
-        <h3 class="card-title">Application Health</h3>
+        <h3 class="card-title">Application Health <span id="hName" style="font-weight:400;color:#8a97ad;font-size:13px;"></span></h3>
         <div class="health-row">
           <div class="health-state"><span class="health-dot" id="hDot"></span><span id="hText">NO DATA</span></div>
           <div class="health-meta">
@@ -287,8 +288,8 @@
     <section class="card">
       <div class="card-head"><h3 class="card-title">Recent Deployments</h3></div>
       <table>
-        <thead><tr><th>Application</th><th>Repository</th><th>Deployed At</th><th>Status</th><th>Live URL</th></tr></thead>
-        <tbody id="recentBody"><tr><td colspan="5" class="empty">No deployments yet. Your deployments will appear here.</td></tr></tbody>
+        <thead><tr><th>Application</th><th>Repository</th><th>Deployed At</th><th>Status</th><th>Live URL</th><th>Actions</th></tr></thead>
+        <tbody id="recentBody"><tr><td colspan="6" class="empty">No deployments yet. Your deployments will appear here.</td></tr></tbody>
       </table>
     </section>
 
@@ -425,9 +426,10 @@
     if (!n) { setNameMsg('Enter a name for your application.', 'info'); return; }
     if (!NAME_RE.test(n)) { setNameMsg('Use lowercase letters, digits and hyphen only (max 41 characters).', 'error'); return; }
     setNameMsg('Checking availability...', 'info');
-    fetch('/check-name?name=' + encodeURIComponent(n)).then(function (r) { return r.json(); }).then(function (d) {
+    fetch('/check-name?name=' + encodeURIComponent(n), { headers: authHeaders(n) }).then(function (r) { return r.json(); }).then(function (d) {
       if (nameInput.value.trim() !== n) { return; }
-      if (d.status === 'ok' && d.available) { nameOk = true; setNameMsg('Available', 'ok'); }
+      if (d.status === 'ok' && d.owned) { nameOk = true; setNameMsg('You own this app. Deploying will update it.', 'ok'); }
+      else if (d.status === 'ok' && d.available) { nameOk = true; setNameMsg('Available', 'ok'); }
       else if (d.status === 'ok') { setNameMsg('Already in use, please choose another name.', 'error'); }
       else { setNameMsg(d.message || 'Could not check the name', 'error'); }
       updateDeployBtn();
@@ -609,6 +611,7 @@
 
     deploying = true;
     deployedName = nameInput.value.trim();
+    healthName = deployedName;
     document.getElementById('liveBox').textContent = 'Available after a successful deployment';
     failBox.style.display = 'none';
     renderSteps([]);
@@ -618,7 +621,7 @@
     syncUI();
 
     try {
-      var res = await fetch('/deploy', { method: 'POST', body: body });
+      var res = await fetch('/deploy', { method: 'POST', body: body, headers: authHeaders(nameInput.value.trim()) });
       var data = await res.json();
       if (!res.ok || data.status !== 'triggered') {
         deploying = false;
@@ -628,6 +631,7 @@
         checkNameNow();
         return;
       }
+      if (data.token) { saveToken(nameInput.value.trim(), data.token); }
       pollErrors = 0;
       var q = data.queue_path;
       pollTimer = setInterval(function () { pollOnce(q); }, 3000);
@@ -649,8 +653,9 @@
   };
 
   function pollHealth() {
-    if (!deployedName) { return; }
-    fetch('/health?name=' + encodeURIComponent(deployedName)).then(function (r) { return r.json(); }).then(function (d) {
+    if (!healthName) { return; }
+    document.getElementById('hName').textContent = '\u00b7 ' + healthName;
+    fetch('/health?name=' + encodeURIComponent(healthName)).then(function (r) { return r.json(); }).then(function (d) {
       var dot = document.getElementById('hDot');
       var text = document.getElementById('hText');
       var tEl = document.getElementById('hTime');
@@ -726,17 +731,24 @@
       var hb = document.getElementById('historyBody');
       rb.innerHTML = ''; hb.innerHTML = '';
       if (!d.items.length) {
-        rb.appendChild(emptyRow(5, 'No deployments yet. Your deployments will appear here.'));
+        rb.appendChild(emptyRow(6, 'No deployments yet. Your deployments will appear here.'));
         hb.appendChild(emptyRow(3, 'No history yet.'));
         return;
+      }
+      if (!healthName) {
+        var mine = d.items.filter(function (x) { return canManage(x.name); });
+        var pick = mine[0] || d.items[0];
+        healthName = pick.name;
+        pollHealth();
+        showLive(pick.live_url);
       }
       d.items.forEach(function (it, i) {
         var repo = it.repo.replace('https://github.com/', '') + (it.app_path !== '.' ? '/' + it.app_path : '');
         var tr = document.createElement('tr');
-        tr.appendChild(td(it.name)); tr.appendChild(td(repo)); tr.appendChild(td(fmtTime(it.deployed_at)));
-        tr.appendChild(badgeCell(it.health)); tr.appendChild(linkCell(it.live_url));
+        tr.appendChild(nameCell(it)); tr.appendChild(td(repo)); tr.appendChild(td(fmtTime(it.deployed_at)));
+        tr.appendChild(badgeCell(it.health)); tr.appendChild(linkCell(it.live_url)); tr.appendChild(actionsCell(it.name));
         rb.appendChild(tr);
-        if (i < 5) {
+        if (i < 10) {
           var t2 = document.createElement('tr');
           t2.appendChild(td(it.name)); t2.appendChild(linkCell(it.live_url)); t2.appendChild(badgeCell(it.health));
           hb.appendChild(t2);
@@ -746,6 +758,115 @@
   }
   loadHistory();
   setInterval(loadHistory, 5000);
+
+  var healthName = '';
+
+  function getTokens() {
+    try { return JSON.parse(localStorage.getItem('df_tokens') || '{}'); } catch (e) { return {}; }
+  }
+  function saveToken(n, t) {
+    try { var m = getTokens(); m[n] = t; localStorage.setItem('df_tokens', JSON.stringify(m)); } catch (e) {}
+  }
+  function dropToken(n) {
+    try { var m = getTokens(); delete m[n]; localStorage.setItem('df_tokens', JSON.stringify(m)); } catch (e) {}
+  }
+  function adminKey() {
+    try { return sessionStorage.getItem('df_admin') || ''; } catch (e) { return ''; }
+  }
+  function authHeaders(n) {
+    var h = {};
+    var t = getTokens()[n];
+    if (t) { h['X-Deploy-Token'] = t; }
+    var k = adminKey();
+    if (k) { h['X-Admin-Key'] = k; }
+    return h;
+  }
+  function canManage(n) { return !!getTokens()[n] || !!adminKey(); }
+
+  var adminLink = document.getElementById('adminLink');
+  function paintAdmin() {
+    adminLink.textContent = adminKey() ? 'Admin (on)' : 'Admin';
+    adminLink.style.color = adminKey() ? '#4ade80' : '#8a97ad';
+  }
+  adminLink.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (adminKey()) {
+      try { sessionStorage.removeItem('df_admin'); } catch (x) {}
+    } else {
+      var k = window.prompt('Enter admin key');
+      if (k) {
+        fetch('/admin-check', { method: 'POST', headers: { 'X-Admin-Key': k.trim() } }).then(function (r) { return r.json(); }).then(function (d) {
+          if (d.admin) { try { sessionStorage.setItem('df_admin', k.trim()); } catch (x) {} logLine('Admin access enabled', 'l-info'); }
+          else { logLine('Wrong admin key', 'l-err'); }
+          paintAdmin();
+          loadHistory();
+        }).catch(function () { logLine('Could not verify the admin key', 'l-err'); });
+        return;
+      }
+    }
+    paintAdmin();
+    loadHistory();
+  });
+  paintAdmin();
+  if (adminKey()) {
+    fetch('/admin-check', { method: 'POST', headers: { 'X-Admin-Key': adminKey() } }).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d.admin) { try { sessionStorage.removeItem('df_admin'); } catch (x) {} paintAdmin(); loadHistory(); }
+    }).catch(function () {});
+  }
+
+  function nameCell(it) {
+    var c = td(it.name);
+    c.style.cursor = 'pointer';
+    c.title = 'Show health and link';
+    c.addEventListener('click', function () {
+      healthName = it.name;
+      pollHealth();
+      showLive(it.live_url);
+    });
+    return c;
+  }
+
+  async function manageAction(name, action) {
+    if (action === 'delete' && !window.confirm('Delete "' + name + '"? The application will be removed.')) { return; }
+    var body = new URLSearchParams();
+    body.append('name', name);
+    body.append('action', action);
+    try {
+      var res = await fetch('/manage', { method: 'POST', body: body, headers: authHeaders(name) });
+      var d = await res.json();
+      if (d.status !== 'ok') { logLine(name + ': ' + (d.message || 'action failed'), 'l-err'); return; }
+      if (action === 'logs') {
+        logBox.innerHTML = '';
+        logLine('--- application logs: ' + name + ' ---', 'l-dim');
+        (d.logs || []).forEach(function (l) { logLine(l, 'l-dim'); });
+        return;
+      }
+      if (action === 'delete') { dropToken(name); logLine(name + ' deleted', 'l-info'); }
+      else { logLine(name + ' restarted', 'l-info'); }
+      loadHistory();
+    } catch (e) {
+      logLine('Request failed', 'l-err');
+    }
+  }
+
+  function actionsCell(name) {
+    var c = document.createElement('td');
+    c.style.whiteSpace = 'nowrap';
+    if (!canManage(name)) { c.textContent = '-'; c.style.color = '#5b6880'; return c; }
+    [['Logs', 'logs'], ['Restart', 'restart'], ['Delete', 'delete']].forEach(function (a) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = a[0];
+      b.className = 'btn btn-ghost';
+      b.style.padding = '5px 10px';
+      b.style.fontSize = '12px';
+      b.style.marginRight = '6px';
+      if (a[1] === 'delete') { b.style.color = '#f87171'; }
+      b.addEventListener('click', function () { manageAction(name, a[1]); });
+      c.appendChild(b);
+    });
+    return c;
+  }
 
   logLine('DeployForge ready. Enter a repository URL and scan.', 'l-dim');
   renderSteps([]);

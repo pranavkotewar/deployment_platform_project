@@ -359,3 +359,8 @@ def manage():
     if action == 'logs':
         return jsonify({'status': 'ok', 'logs': r.stdout.splitlines()[-100:]})
     return jsonify({'status': 'ok', 'message': 'Done'})
+
+
+@deploy_bp.route('/admin-check', methods=['POST'])
+def admin_check():
+    return jsonify({'status': 'ok', 'admin': is_admin()})
