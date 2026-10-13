@@ -285,7 +285,7 @@
 
   <div class="grid2">
     <section class="card">
-      <div class="card-head"><h3 class="card-title">Recent Deployments</h3><span class="view-all">View all</span></div>
+      <div class="card-head"><h3 class="card-title">Recent Deployments</h3></div>
       <table>
         <thead><tr><th>Application</th><th>Repository</th><th>Deployed At</th><th>Status</th><th>Live URL</th></tr></thead>
         <tbody id="recentBody"><tr><td colspan="5" class="empty">No deployments yet. Your deployments will appear here.</td></tr></tbody>
@@ -294,11 +294,11 @@
 
     <div class="col">
       <section class="card">
-        <div class="card-head"><h3 class="card-title">Deployment Logs</h3><span class="view-all">View all</span></div>
+        <div class="card-head"><h3 class="card-title">Deployment Logs</h3></div>
         <div class="terminal" id="logBox"></div>
       </section>
       <section class="card">
-        <div class="card-head"><h3 class="card-title">Deployment History</h3><span class="view-all">View all</span></div>
+        <div class="card-head"><h3 class="card-title">Deployment History</h3></div>
         <table>
           <thead><tr><th>Application</th><th>Live URL</th><th>Status</th></tr></thead>
           <tbody id="historyBody"><tr><td colspan="3" class="empty">No history yet.</td></tr></tbody>
@@ -684,6 +684,12 @@
     span.textContent = '\u25CF ' + b[0];
     span.style.color = b[1];
     span.style.background = 'rgba(255,255,255,0.05)';
+    span.style.display = 'inline-flex';
+    span.style.alignItems = 'center';
+    span.style.whiteSpace = 'nowrap';
+    span.style.display = 'inline-flex';
+    span.style.alignItems = 'center';
+    span.style.whiteSpace = 'nowrap';
     span.style.padding = '3px 10px';
     span.style.borderRadius = '999px';
     span.style.fontSize = '12px';
