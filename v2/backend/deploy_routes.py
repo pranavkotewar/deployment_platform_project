@@ -273,7 +273,7 @@ def history():
 
 # ---------- token / admin access ----------
 TOKEN_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'tokens.json')
-ADMIN_KEY = os.getenv('ADMIN_KEY', '')
+ADMIN_KEY = os.getenv('ADMIN_PASSWORD') or os.getenv('ADMIN_KEY', '')
 _lock = threading.Lock()
 PENDING = {}
 

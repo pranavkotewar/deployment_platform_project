@@ -117,10 +117,12 @@
   th { text-align: left; font-size: 12px; font-weight: 500; color: var(--muted); padding: 10px 8px; border-bottom: 1px solid var(--line); }
   td { padding: 14px 8px; font-size: 13px; }
   .empty { text-align: center; color: #5b6880; padding: 34px 8px; font-size: 13px; }
-  .terminal { background: #060a12; border: 1px solid var(--line); border-radius: 8px; padding: 14px; font-family: Consolas, 'Courier New', monospace; font-size: 12.5px; line-height: 1.7; height: 190px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+  .terminal { background: #060a12; border: 1px solid var(--line); border-radius: 8px; padding: 14px; font-family: Consolas, 'Courier New', monospace; font-size: 12.5px; line-height: 1.7; height: 400px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
   .l-info { color: #86efac; }
   .l-err { color: #f87171; }
   .l-dim { color: #64748b; }
+  .scroll-box { max-height: 440px; overflow-y: auto; }
+  .scroll-box th { position: sticky; top: 0; background: var(--panel); }
   .view-all { font-size: 12px; color: #4d8dff; }
 
   @media (max-width: 1150px) {
@@ -286,26 +288,19 @@
 
   <div class="grid2">
     <section class="card">
-      <div class="card-head"><h3 class="card-title">Recent Deployments</h3></div>
-      <table>
-        <thead><tr><th>Application</th><th>Repository</th><th>Deployed At</th><th>Status</th><th>Live URL</th><th>Actions</th></tr></thead>
-        <tbody id="recentBody"><tr><td colspan="6" class="empty">No deployments yet. Your deployments will appear here.</td></tr></tbody>
-      </table>
+      <div class="card-head"><h3 class="card-title">Deployments</h3></div>
+      <div class="scroll-box">
+        <table>
+          <thead><tr><th>Application</th><th>Repository</th><th>Deployed At</th><th>Status</th><th>Live URL</th><th>Actions</th></tr></thead>
+          <tbody id="recentBody"><tr><td colspan="6" class="empty">No deployments yet. Your deployments will appear here.</td></tr></tbody>
+        </table>
+      </div>
     </section>
 
-    <div class="col">
-      <section class="card">
-        <div class="card-head"><h3 class="card-title">Deployment Logs</h3></div>
-        <div class="terminal" id="logBox"></div>
-      </section>
-      <section class="card">
-        <div class="card-head"><h3 class="card-title">Deployment History</h3></div>
-        <table>
-          <thead><tr><th>Application</th><th>Live URL</th><th>Status</th></tr></thead>
-          <tbody id="historyBody"><tr><td colspan="3" class="empty">No history yet.</td></tr></tbody>
-        </table>
-      </section>
-    </div>
+    <section class="card">
+      <div class="card-head"><h3 class="card-title">Deployment Logs</h3></div>
+      <div class="terminal" id="logBox"></div>
+    </section>
   </div>
 </div>
 
@@ -734,7 +729,7 @@
     fetch('/history').then(function (r) { return r.json(); }).then(function (d) {
       if (d.status !== 'ok') { return; }
       var rb = document.getElementById('recentBody');
-      var hb = document.getElementById('historyBody');
+      var hb = document.createElement('tbody');
       rb.innerHTML = ''; hb.innerHTML = '';
       if (!d.items.length) {
         rb.appendChild(emptyRow(6, 'No deployments yet. Your deployments will appear here.'));
@@ -800,7 +795,7 @@
     try { var m = getTokens(); delete m[n]; localStorage.setItem('df_tokens', JSON.stringify(m)); } catch (e) {}
   }
   function adminKey() {
-    try { return sessionStorage.getItem('df_admin') || ''; } catch (e) { return ''; }
+    try { return localStorage.getItem('df_admin') || ''; } catch (e) { return ''; }
   }
   function authHeaders(n) {
     var h = {};
@@ -820,13 +815,13 @@
   adminLink.addEventListener('click', function (e) {
     e.preventDefault();
     if (adminKey()) {
-      try { sessionStorage.removeItem('df_admin'); } catch (x) {}
+      try { localStorage.removeItem('df_admin'); } catch (x) {}
     } else {
-      var k = window.prompt('Enter admin key');
+      var k = window.prompt('Enter admin password');
       if (k) {
         fetch('/admin-check', { method: 'POST', headers: { 'X-Admin-Key': k.trim() } }).then(function (r) { return r.json(); }).then(function (d) {
-          if (d.admin) { try { sessionStorage.setItem('df_admin', k.trim()); } catch (x) {} logLine('Admin access enabled', 'l-info'); }
-          else { logLine('Wrong admin key', 'l-err'); }
+          if (d.admin) { try { localStorage.setItem('df_admin', k.trim()); } catch (x) {} logLine('Admin access enabled', 'l-info'); }
+          else { logLine('Wrong admin password', 'l-err'); }
           paintAdmin();
           loadHistory();
         }).catch(function () { logLine('Could not verify the admin key', 'l-err'); });
@@ -839,7 +834,7 @@
   paintAdmin();
   if (adminKey()) {
     fetch('/admin-check', { method: 'POST', headers: { 'X-Admin-Key': adminKey() } }).then(function (r) { return r.json(); }).then(function (d) {
-      if (!d.admin) { try { sessionStorage.removeItem('df_admin'); } catch (x) {} paintAdmin(); loadHistory(); }
+      if (!d.admin) { try { localStorage.removeItem('df_admin'); } catch (x) {} paintAdmin(); loadHistory(); }
     }).catch(function () {});
   }
 
