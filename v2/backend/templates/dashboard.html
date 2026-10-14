@@ -565,6 +565,7 @@
   function finishDeploy(data) {
     clearInterval(pollTimer);
     deploying = false;
+    releaseHealth(data.result === 'SUCCESS');
     if (data.result === 'SUCCESS') {
       setHero('Deployed', 'Your application passed the health check.', 'good');
       logLine('Deployment finished successfully.', 'l-info');
@@ -593,6 +594,7 @@
       if (pollErrors >= 5) {
         clearInterval(pollTimer);
         deploying = false;
+        releaseHealth(false);
         setHero('Status Unavailable', 'Lost contact with the server.', 'bad');
         logLine('Could not read deployment status.', 'l-err');
         syncUI();
@@ -612,6 +614,8 @@
     deploying = true;
     deployedName = nameInput.value.trim();
     healthName = deployedName;
+    healthHold = true;
+    setHealthChecking();
     document.getElementById('liveBox').textContent = 'Available after a successful deployment';
     failBox.style.display = 'none';
     renderSteps([]);
@@ -625,6 +629,7 @@
       var data = await res.json();
       if (!res.ok || data.status !== 'triggered') {
         deploying = false;
+        releaseHealth(false);
         setHero('Could not start', data.message || 'Request rejected.', 'bad');
         logLine('Deploy request failed: ' + (data.message || 'unknown error'), 'l-err');
         syncUI();
@@ -638,6 +643,7 @@
       pollOnce(q);
     } catch (err) {
       deploying = false;
+      releaseHealth(false);
       setHero('Could not start', 'Server not reachable.', 'bad');
       logLine('Could not reach the server', 'l-err');
       syncUI();
@@ -653,7 +659,7 @@
   };
 
   function pollHealth() {
-    if (!healthName) { return; }
+    if (!healthName || healthHold) { return; }
     document.getElementById('hName').textContent = '\u00b7 ' + healthName;
     fetch('/health?name=' + encodeURIComponent(healthName)).then(function (r) { return r.json(); }).then(function (d) {
       var dot = document.getElementById('hDot');
@@ -760,6 +766,29 @@
   setInterval(loadHistory, 5000);
 
   var healthName = '';
+  var healthHold = false;
+
+  function setHealthChecking() {
+    document.getElementById('hName').textContent = '\u00b7 ' + healthName;
+    var dot = document.getElementById('hDot');
+    var text = document.getElementById('hText');
+    dot.style.background = '#3b82f6';
+    text.style.color = '#93c5fd';
+    text.textContent = 'CHECKING...';
+    document.getElementById('hTime').textContent = '--:--:--';
+    document.getElementById('hCode').textContent = '--';
+    document.getElementById('hNote').textContent = 'Health will appear after the deployment health check passes.';
+  }
+
+  function releaseHealth(ok) {
+    healthHold = false;
+    if (ok) { pollHealth(); return; }
+    document.getElementById('hDot').style.background = '#2a3957';
+    var text = document.getElementById('hText');
+    text.style.color = '#8a97ad';
+    text.textContent = 'NO DATA';
+    document.getElementById('hNote').textContent = '';
+  }
 
   function getTokens() {
     try { return JSON.parse(localStorage.getItem('df_tokens') || '{}'); } catch (e) { return {}; }
