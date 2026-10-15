@@ -258,3 +258,13 @@ VM1 also claims a free static domain from the ngrok dashboard
 - **V3:** replace Docker-only runtime with k3s, `kubectl rollout undo`
   for rollback, versioned image tags, deployment history on dashboard.
 
+
+---
+
+## Version 2: Reliability (current)
+
+DeployForge V2 deploys a GitHub repository with validation, templates, automatic ports, health checks, self-healing, history and per-deployment access control. Apps are public through Tailscale Funnel at https://my-app.<tailnet>.ts.net/apps/name/ and the dashboard at https://deployforge.<tailnet>.ts.net.
+
+Documentation: v2/docs/ (Overview, Architecture, Implementation, Testing).
+Run on VM1: ./status.sh to see all services. Everything starts at boot through systemd.
+Version 1 stays in v1/ (tag v1.0). Tag for this version: v2.0.
