@@ -2,19 +2,23 @@
 
 ## 1. Overview
 
-Internet
-| https://deployforge.<tailnet>.ts.net https://my-app.<tailnet>.ts.net
-v v
-Tailscale Funnel (VM1) Tailscale Funnel (VM2)
-v v
-Flask dashboard :5000 Nginx gateway :8080
-| |-- /apps/app1/ -> 127.0.0.1:9001
-| REST API |-- /apps/app2/ -> 127.0.0.1:9002
-v `-- /apps/app3/ -> 127.0.0.1:9003
-Jenkins :8080 (job deploy-pipeline-v2) ^
-| SSH over Tailscale (projectvm2@my-app) |
-v |
-VM2: Docker containers (restart policy), registries, health timer
+```
+Dashboard path:
+  Internet -> https://deployforge.<tailnet>.ts.net
+    -> Tailscale Funnel (VM1) -> Flask dashboard :5000
+    -> Jenkins :8080 (job deploy-pipeline-v2)
+    -> SSH over Tailscale (projectvm2@my-app)
+
+Application path:
+  Internet -> https://my-app.<tailnet>.ts.net/apps/<name>/
+    -> Tailscale Funnel (VM2) -> Nginx gateway :8080
+    -> /apps/app1/ -> 127.0.0.1:9001
+    -> /apps/app2/ -> 127.0.0.1:9002
+    -> /apps/app3/ -> 127.0.0.1:9003
+
+VM2 runs: Docker containers (restart policy unless-stopped),
+registries (ports.db, health.db, deployments.db), health timer.
+```
 
 
 ## 2. Machines

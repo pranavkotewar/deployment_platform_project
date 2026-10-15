@@ -2,6 +2,7 @@
 
 ## 1. Repository layout
 
+```
 auto-deploy-system/
 README.md start.sh stop.sh status.sh .gitignore
 v1/ (locked)
@@ -13,6 +14,7 @@ backend/ (app.py, detect_routes.py, deploy_routes.py, templates/dashboard.html, 
 docs/
 
 Secrets (.env, backend/data) are gitignored. Test apps live in separate repos.
+```
 
 ## 2. Setup order (as built)
 1. Tailscale on both VMs with the same account. Hostnames deployforge and my-app. Funnel enabled in the admin console and HTTPS certificates enabled.
