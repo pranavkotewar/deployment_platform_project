@@ -35,7 +35,13 @@ if [ -f "$APP_DIR/Dockerfile" ]; then
     pass "Dockerfile found, it will be used as is"
 else
     case "$TEMPLATE" in
-        static|flask|node) pass "No Dockerfile, template selected: $TEMPLATE" ;;
+        node)
+            if [ -f "$APP_DIR/package.json" ]; then pass "No Dockerfile, template selected: node"
+            else fail "Node template needs a package.json, but this folder has none"; fi ;;
+        flask)
+            if ls "$APP_DIR"/*.py > /dev/null 2>&1; then pass "No Dockerfile, template selected: flask"
+            else fail "Flask template needs a Python file such as app.py, but this folder has none"; fi ;;
+        static) pass "No Dockerfile, template selected: static" ;;
         *) fail "No Dockerfile and no valid template selected" ;;
     esac
 fi
