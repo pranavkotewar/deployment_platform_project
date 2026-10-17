@@ -338,7 +338,7 @@ def manage():
     d = '~/deployforge/scripts'
     if action == 'delete':
         cmd = (f"bash {d}/assign_port.sh release {name}; docker rm -f {name} >/dev/null 2>&1; "
-               f"bash {d}/generate_nginx_route.sh remove {name}; bash {d}/record.sh remove {name}")
+               f"bash {d}/generate_nginx_route.sh remove {name}; bash {d}/record.sh remove {name}; bash {d}/cleanup.sh purge {name}")
     elif action == 'restart':
         cmd = f"docker restart {name}"
     else:

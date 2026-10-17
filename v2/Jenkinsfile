@@ -66,7 +66,7 @@ pipeline {
         stage('Build Image') {
             steps {
                 sh '''
-                ssh -n "$VM2_HOST" "cd '$WORK/repo/$APP_PATH' && docker build --no-cache -t '$APP_NAME:$BUILD_NUMBER' -t '$APP_NAME:latest' ."
+                ssh -n "$VM2_HOST" "cd '$WORK/repo/$APP_PATH' && docker build -t '$APP_NAME:$BUILD_NUMBER' -t '$APP_NAME:latest' ."
                 '''
             }
         }
@@ -126,7 +126,7 @@ pipeline {
             script {
                 if (env.CONTAINER_STARTED == 'true') {
                     sh '''
-                    ssh -n "$VM2_HOST" "docker rm -f '$APP_NAME' >/dev/null 2>&1; bash deployforge/scripts/generate_nginx_route.sh remove '$APP_NAME'; bash deployforge/scripts/assign_port.sh release '$APP_NAME'" || true
+                    ssh -n "$VM2_HOST" "docker rm -f '$APP_NAME' >/dev/null 2>&1; bash deployforge/scripts/generate_nginx_route.sh remove '$APP_NAME'; bash deployforge/scripts/assign_port.sh release '$APP_NAME'; bash deployforge/scripts/cleanup.sh purge '$APP_NAME'" || true
                     '''
                     echo "Failed container removed and port released."
                 }

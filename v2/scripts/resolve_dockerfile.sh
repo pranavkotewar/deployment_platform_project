@@ -23,6 +23,7 @@ else
         exit 1
     fi
     cp -r "$TEMPLATES_DIR/$TEMPLATE/." "$APP_DIR/"
+    if [ "$TEMPLATE" = "flask" ] && [ ! -f "$APP_DIR/requirements.txt" ]; then touch "$APP_DIR/requirements.txt"; fi
     echo "Generated Dockerfile from template: $TEMPLATE"
 fi
 
