@@ -74,3 +74,18 @@ Quick overview: ./status.sh on VM1.
 | Static template returned HTTP 403 and looked healthy | Template now fails the build if no index.html exists |
 | Dashboard showed old app health during deploy | Panel shows CHECKING until the health check passes |
 | Flask debug mode on a public dashboard | debug=False |
+| Every deploy re-downloaded dependencies (no-cache builds) | Removed --no-cache, layer cache is used, Flask template installs requirements first |
+| Images of deleted apps stayed on VM2 and used space | cleanup.sh purge on Delete and on failed deploy, base images kept |
+| Wrong template gave a cryptic Docker error | validate.sh checks package.json (Node) and a .py file (Flask) |
+| Framework source repos (expressjs/express, pallets/flask) failed the health check | They are libraries, not applications. Pick a real application repo |
+| Deploying the project repo itself failed (no index.html) | Expected. It is platform code, not a deployable app |
+| Dashboard URL gave ERR_TIMED_OUT | Funnel listens on port 443 only. Open the URL with https:// |
+| Funnel service showed inactive after adding a timer | Timer removed, service back to oneshot with RemainAfterExit |
+
+## 8. Version 2.1 changes (after v2.0)
+- Docker builds use the layer cache. The Flask template installs requirements.txt before copying the code.
+- Delete and failed deploys remove the images of that app. Base images stay cached.
+- validate.sh checks that the selected template fits the folder.
+- Boot behaviour: after a VM starts, the public dashboard URL can take 30 to 40 seconds to answer, because the Funnel service waits for Tailscale. Always open the URL with https://.
+- Flask apps behind the /apps/name/ route should use ProxyFix(app.wsgi_app, x_prefix=1), because Nginx sends X-Forwarded-Prefix. Without it url_for() builds absolute paths that break.
+- Choose real application repos for testing. Libraries and framework sources are not applications.

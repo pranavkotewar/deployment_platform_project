@@ -268,3 +268,4 @@ DeployForge V2 deploys a GitHub repository with validation, templates, automatic
 Documentation: v2/docs/ (Overview, Architecture, Implementation, Testing).
 Run on VM1: ./status.sh to see all services. Everything starts at boot through systemd.
 Version 1 stays in v1/ (tag v1.0). Tag for this version: v2.0.
+Version 2.1 (tag v2.1): layer cache, image cleanup on delete, template fit check. See v2/docs/03_Implementation_Guide.md, section 8.

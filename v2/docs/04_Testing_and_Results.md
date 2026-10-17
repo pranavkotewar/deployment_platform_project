@@ -57,6 +57,16 @@ check-name, deploy rejection of invalid input, deploy status for success and bot
 | VM1 restart: dashboard and Funnel return, history intact, admin remembered | Pass |
 | Switch from USB tethering to Wi-Fi, full deploy afterwards | Pass |
 
+## 6A. Tests after v2.0 (V2.1)
+| Test | Result |
+|---|---|
+| Redeploy of the same app reuses cached layers and builds faster | Pass |
+| Delete removes all images of the app | Pass |
+| Static template on a repo without index.html fails with a clear message | Pass |
+| Framework source repos (express, flask) fail the health check and leave nothing behind | Pass |
+| Node template on a folder without package.json fails at Validate | Pending |
+| Flask app with ProxyFix deployed under /apps/name/ (forms and redirects work) | Pending |
+
 ## 7. Known limitations
 - Applications must use relative paths. Apps using absolute paths such as /style.css can break under /apps/name/.
 - Templates cover common layouts only. Django, FastAPI, apps that need a build step and apps with a hardcoded port need their own Dockerfile.
@@ -67,6 +77,10 @@ check-name, deploy rejection of invalid input, deploy status for success and bot
 - A name stays reserved for 15 minutes after a failed deploy, and the reservation resets when the dashboard restarts.
 - Credentials are stored in plain text files on the VM (.env), acceptable for a learning project.
 - Free Tailscale plan and the public DNS delay can affect the first access.
+- With the layer cache on, a Dockerfile step like git clone or apt-get update can reuse an old result. Delete the app and deploy again for a fully fresh build.
+- Library or framework source repositories are not applications and fail the health check.
+- Flask apps must use ProxyFix, and every app must use relative paths, to work under /apps/name/.
+- The dashboard URL must be opened with https://. After a VM start allow 30 to 40 seconds.
 
 ## 8. Next version (V3)
 Kubernetes (k3s) with probes, rollback with image versions, parallel builds with per-build files, multi-container support, real accounts and roles.

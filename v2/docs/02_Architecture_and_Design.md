@@ -64,6 +64,10 @@ post always: cleanup.sh (work folder, old image tags, dangling images). post suc
 - Health: HTTP answer below 500 is healthy (4xx counts as the app is responding). No answer or 5xx is unhealthy.
 - Self-healing: container stopped, start it. Container missing, recreate from its image. Two failed checks, restart. After 3 restarts the status is failed, with one recovery attempt every 5 minutes.
 
+- Image cache (V2.1): builds use the Docker layer cache, so a redeploy reuses unchanged layers. The Flask template copies and installs requirements.txt before the app code, so a code change does not reinstall dependencies. Base images (node, python, nginx) are shared and stay cached.
+- Template check (V2.1): validate.sh also checks that the chosen template fits the folder (Node needs package.json, Flask needs a .py file) and fails early with a clear reason.
+- Image cleanup (V2.1): Delete and a failed deploy remove all images of that app (cleanup.sh purge). Base images are never removed.
+
 ## 6. Data on VM2 (~/deployforge)
 | File | Content |
 |---|---|
