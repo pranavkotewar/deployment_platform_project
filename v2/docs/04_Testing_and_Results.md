@@ -64,7 +64,7 @@ check-name, deploy rejection of invalid input, deploy status for success and bot
 | Delete removes all images of the app | Pass |
 | Static template on a repo without index.html fails with a clear message | Pass |
 | Framework source repos (express, flask) fail the health check and leave nothing behind | Pass |
-| Node template on a folder without package.json fails at Validate | Pending |
+| Node template on a folder without package.json fails at Validate | Pass |
 | Flask app with ProxyFix deployed under /apps/name/ (forms and redirects work) | Pending |
 
 ## 7. Known limitations

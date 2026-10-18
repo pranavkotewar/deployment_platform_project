@@ -86,6 +86,6 @@ Quick overview: ./status.sh on VM1.
 - Docker builds use the layer cache. The Flask template installs requirements.txt before copying the code.
 - Delete and failed deploys remove the images of that app. Base images stay cached.
 - validate.sh checks that the selected template fits the folder.
-- Boot behaviour: after a VM starts, the public dashboard URL can take 30 to 40 seconds to answer, because the Funnel service waits for Tailscale. Always open the URL with https://.
+- Boot: deployforge-web does not wait for Jenkins (Flask only calls Jenkins on a deploy request), and the Funnel service starts after deployforge-web. The dashboard answers about 15 seconds after boot. Jenkins needs about 1 minute, so a deploy started in the first minute can show 'Could not reach Jenkins'. Always open the URL with https://.
 - Flask apps behind the /apps/name/ route should use ProxyFix(app.wsgi_app, x_prefix=1), because Nginx sends X-Forwarded-Prefix. Without it url_for() builds absolute paths that break.
 - Choose real application repos for testing. Libraries and framework sources are not applications.
